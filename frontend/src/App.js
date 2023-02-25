@@ -1,11 +1,17 @@
 import React from 'react';
-import logo from './logo.svg';
+import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import './App.css';
 import { Board } from './components/board/Board';
+import Lobby from './components/lobby/Lobby';
 
-function App() {
+const App = () => {
   return (
-    <Board />
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<Lobby />} />
+        <Route path='room/:room_id' element={<Board />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
