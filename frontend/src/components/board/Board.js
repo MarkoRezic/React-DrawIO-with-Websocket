@@ -24,7 +24,6 @@ export const Board = (props) => {
 
     const socketRef = useRef(null)
 
-    const [username, setUsername] = useState('')
     const [users, setUsers] = useState({})
 
     let throttleTimer;
@@ -103,7 +102,6 @@ export const Board = (props) => {
             sessionStorage.setItem("username", sessionStorage.getItem("username") ?? sessionStorage.getItem("previousId") ?? socketRef.current.id)
             sessionStorage.setItem("previousId", socketRef.current.id)
 
-            setUsername(sessionStorage.getItem("username"))
         }, 500, hasSocketId, 10)
         return () => {
 
@@ -266,10 +264,6 @@ export const Board = (props) => {
         canvasRef.current.addEventListener('mousedown', listenersRef.current.onMouseDown, false);
 
         canvasRef.current.addEventListener('mouseup', listenersRef.current.onMouseUp, false);
-    }
-
-    const changeUsername = () => {
-
     }
 
     return (

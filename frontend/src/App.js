@@ -9,6 +9,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Lobby />} />
+        <Route path='public' element={<Board public={true} />} />
         <Route path='room/:room_id' element={<Board />} />
       </Routes>
     </BrowserRouter>

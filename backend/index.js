@@ -3,10 +3,19 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
 var users = {}
+var rooms = {
+      "public": {
+            max_users: -1,
+            rounds: -1,
+            round_time: 80,
+            custom_words: '',
+            hints: 3,
+      },
+}
 
 io.on('connection', (socket) => {
       console.log('User Connected', socket.id);
-      socket.on('login', ({ previousId, newId, username }) => {
+      socket.on('login', ({ previousId, newId, username, room_id }) => {
             if (users?.[previousId] == null) {
                   console.log('New User Joined', username);
                   users[newId] = {
@@ -20,6 +29,14 @@ io.on('connection', (socket) => {
                         username
                   }
             }
+
+            if (rooms?.[room_id] == null) {
+                  //create new room
+            }
+
+            //join
+
+
             io.sockets.emit('user-joined', { userList: users, userId: newId });
             console.log(users)
             //socket.broadcast.to(roomName).emit('user_leave', {user_name: "johnjoe123"});

@@ -1,24 +1,37 @@
 import React, { useState } from 'react';
 import avatars from './avatars';
 import TITLE_IMG from '../../img/title.svg'
+import io from 'socket.io-client';
 
 import './style.css';
+import { useNavigate } from 'react-router-dom';
 
 const Lobby = () => {
-    const [username, setUsername] = useState(localStorage.getItem('username') ?? '')
-    const [selectedAvatar, setSelectedAvatar] = useState(avatars[parseInt(localStorage.getItem('avatar') ?? '0')])
+    const [username, setUsername] = useState(sessionStorage.getItem('username') ?? '')
+    const [selectedAvatar, setSelectedAvatar] = useState(avatars[parseInt(sessionStorage.getItem('avatar') ?? '0')])
+    const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
 
     const updateUsername = (e) => {
         setUsername(e.target.value)
-        localStorage.setItem('username', e.target.value)
+        sessionStorage.setItem('username', e.target.value)
     }
 
     const selectAvatar = (avatarIndex) => {
         setSelectedAvatar(avatars[avatarIndex])
-        localStorage.setItem('avatar', avatarIndex.toString())
+        sessionStorage.setItem('avatar', avatarIndex.toString())
     }
 
     const btnEnabled = username.trim() !== ''
+
+    const joinPublicRoom = () => {
+        navigate('/public')
+    }
+
+    const createPrivateRoom = () => {
+
+    }
 
 
     return (
@@ -40,7 +53,7 @@ const Lobby = () => {
                 <label>NADIMAK</label>
                 <input type='text' placeholder='Unesite naziv' value={username} onChange={updateUsername} />
             </div>
-            <button id='btn-play' className={'btn btn-primary btn-large' + (btnEnabled ? '' : ' btn-disabled')}>Igraj</button>
+            <button id='btn-play' className={'btn btn-primary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={joinPublicRoom}>Igraj</button>
             <button id='btn-private-room' className={'btn btn-secondary btn-large' + (btnEnabled ? '' : ' btn-disabled')}>Kreiraj privatnu sobu</button>
         </div>
     )
