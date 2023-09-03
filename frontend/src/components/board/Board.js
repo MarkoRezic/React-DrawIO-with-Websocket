@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import io from 'socket.io-client';
+import socketio from 'socket.io-client';
 
 import './style.css';
 
@@ -85,11 +85,19 @@ export const Board = (props) => {
     }
 
     useEffect(() => {
-        socketRef.current = io.connect("http://localhost:5000")
+        socketRef.current = socketio.connect("http://localhost:5000", {
+            withCredentials: true
+        })
 
         socketRef.current.on("user-joined", ({ userList, userId }) => {
             console.log(userList)
             toast(userId === socketRef.current?.id ? 'You joined' : `User joined: ${userList[userId]['username']}`);
+            setUsers(userList)
+        })
+
+        socketRef.current.on("user-leave", ({ userList, userId, username }) => {
+            console.log(userList)
+            toast(userId === socketRef.current?.id ? 'You left' : `User left: ${username}`);
             setUsers(userList)
         })
 

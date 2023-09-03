@@ -1,4 +1,4 @@
-#lobby{
+#lobby {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -60,6 +60,7 @@
 }
 
 #lobby-input-container {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -98,4 +99,10 @@
 
 #btn-private-room {
     width: 50%;
+    margin-bottom: 20px;
+}
+
+#btn-logout {
+    width: 50%;
+    margin-bottom: 20px;
 }

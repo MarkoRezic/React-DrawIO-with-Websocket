@@ -6,6 +6,7 @@
   --main-color-dark: #880909;
   --main-gradient: linear-gradient(180deg, #AA0C0C 0%, #880909 100%);
   --secondary-gradient: linear-gradient(180deg, #0C0CAA 0%, #090988 100%);
+  --tertiary-gradient: linear-gradient(180deg, #a3a3a3 0%, #656565 100%);
   --lobby-background-color: rgba(255, 155, 0, 1);
   --avatar-background-color: rgba(191, 166, 128, 1);
   --hover-filter: brightness(1.15);
@@ -44,6 +45,10 @@
 
 .btn-secondary {
   background: var(--secondary-gradient);
+}
+
+.btn-tertiary {
+  background: var(--tertiary-gradient);
 }
 
 .btn:not(.btn-disabled):hover {
