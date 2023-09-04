@@ -111,7 +111,7 @@ let words_hr = [];
 
 const defaultGameSettings = {
       max_users: 5,
-      round_time: 20,
+      round_time: 60,
       round_count: 5,
       hint_count: 2,
       custom_words: []
@@ -130,10 +130,8 @@ const defaultGameState = {
       current_word: null,
       used_custom_words: [],
       current_hints: 0,
-      chat_messages: [],
 }
 
-var users = {}
 var rooms = {
       "public": {
             gameSettings: {
@@ -156,7 +154,6 @@ var rooms = {
                   current_word: null,
                   used_custom_words: [],
                   current_hints: 0,
-                  chat_messages: [],
             },
       },
 }
@@ -187,7 +184,6 @@ const endGame = async (room_id, room) => {
             current_word: null,
             used_custom_words: [],
             current_hints: 0,
-            chat_messages: [],
       }
 }
 
@@ -205,14 +201,23 @@ const startGame = async (room_id, room) => {
             current_word: room.gameState.current_word ?? words_hr[Math.floor(Math.random() * words_hr.length)],
             used_custom_words: [],
             current_hints: 0,
-            chat_messages: ['Igra je započela!', `Idući crta ${room.gameState.user_list[0]?.username}`],
       }
+      io.to(room_id).emit('game-chat-message', {
+            messages: [
+                  'Igra je započela!',
+                  `Idući crta ${room.gameState.user_list[0]?.username}`
+            ]
+      })
 }
 const startNextRound = async (room_id, room) => {
-      // add message that next round is starting
-      room.gameState.chat_messages.push(`Runda ${room.gameState.current_round + 1} započela!`)
-      // add message that first user is drawing
-      room.gameState.chat_messages.push(`Idući crta ${room.gameState.user_list[0].username}.`)
+      io.to(room_id).emit('game-chat-message', {
+            messages: [
+                  // send message that next round is starting
+                  `Runda ${room.gameState.current_round + 1} započela!`,
+                  // send message that first user is drawing
+                  `Idući crta ${room.gameState.user_list[0].username}.`
+            ]
+      })
       room.gameState.current_word = null;
       if (room.gameState.used_custom_words.length < room.gameSettings.custom_words) {
             room.gameState.used_custom_words.push(room.gameSettings.custom_words.find(custom_word => !(room.gameState.used_custom_words.includes(custom_word))))
@@ -234,8 +239,12 @@ const startNextUserTurn = async (room_id, room) => {
       room.gameState.current_round_played_user_id_list.push(room.gameState.drawing_user_id)
       // set new drawing user id
       room.gameState.drawing_user_id = room.gameState.user_list.find(user => !(room.gameState.current_round_played_user_id_list.includes(user.user_id))).user_id
-      // add message that next user is drawing
-      room.gameState.chat_messages.push(`Idući crta ${room.gameState.user_list.find(user => user.user_id === room.gameState.drawing_user_id).username}.`)
+      // send message that next user is drawing
+      io.to(room_id).emit('game-chat-message', {
+            messages: [
+                  `Idući crta ${room.gameState.user_list.find(user => user.user_id === room.gameState.drawing_user_id).username}.`
+            ]
+      })
       // set current word to custom word if not all are used up
       room.gameState.current_word = null;
       if (room.gameState.used_custom_words.length < room.gameSettings.custom_words) {
@@ -303,6 +312,11 @@ const updateGame = async (room_id, room) => {
       console.log("EVENT:", event_name);
 }
 
+const updateSettings = async (room_id, room, gameSettings) => {
+      room.gameSettings = gameSettings;
+      io.to(room_id).emit('update-game-settings', { gameSettings: room.gameSettings })
+}
+
 io.on('connection', (socket) => {
       console.log('User Connected', socket.id);
       socket.on('join-room', ({ user, room_id, gameSettings }) => {
@@ -323,48 +337,36 @@ io.on('connection', (socket) => {
                         gameSettings: gameSettings ?? defaultGameSettings,
                         gameState: {
                               ...defaultGameState,
+                              admin_user_id: user?.user_id,
                               current_time: (gameSettings ?? defaultGameSettings).round_time,
                         }
                   }
             }
-            // only emit the event if the user isn't already in the list
-            if (rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user.user_id === user.user_id) === -1) {
+            // only add the user if he isn't already in the list
+            if (rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user?.user_id === user?.user_id) === -1) {
                   rooms[room_id].gameState.user_list.push({ ...user, socket_id: socket.id })
                   // start the public room game if at least 2 users are now in room
                   if (room_id === "public" && rooms[room_id].gameState.started === false && rooms[room_id].gameState.user_list.length > 1) {
                         startGame(room_id, rooms[room_id]);
                   }
-
-                  io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id].gameState });
             }
+            io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id].gameState });
       });
 
-      socket.on('login', ({ previousId, newId, username, room_id }) => {
-            if (users?.[previousId] == null) {
-                  console.log('New User Joined', username);
-                  users[newId] = {
-                        username
-                  }
+      socket.on('change-settings', ({ room_id, gameSettings }) => {
+            if (room_id !== "public" && rooms[room_id] != null) {
+                  updateSettings(room_id, rooms[room_id], gameSettings)
             }
-            else {
-                  console.log('User Joined', username);
-                  delete users[previousId]
-                  users[newId] = {
-                        username
-                  }
+      })
+
+      socket.on('start-game', ({ user, room_id }) => {
+            console.log(rooms)
+            console.log(user, room_id)
+            console.log(rooms[`${room_id}`])
+            if (room_id !== "public" && rooms[room_id] != null && user?.user_id === rooms[room_id]?.gameState?.admin_user_id) {
+                  startGame(room_id, rooms[room_id])
             }
-
-            if (rooms?.[room_id] == null) {
-                  //create new room
-            }
-
-            //join
-
-
-            io.sockets.emit('user-joined', { userList: users, userId: newId });
-            console.log(users)
-            //socket.broadcast.to(roomName).emit('user_leave', {user_name: "johnjoe123"});
-      });
+      })
 
       socket.on('canvas-data', ({ data, id }) => {
             socket.broadcast.emit('canvas-data', { data, id });
@@ -377,8 +379,9 @@ io.on('connection', (socket) => {
             for (let [room_id, room] of Object.entries(rooms)) {
                   let user_index = room.gameState.user_list.findIndex(user => user.socket_id === socket.id)
                   if (user_index !== -1) {
-                        room.gameState.user_list = room.gameState.user_list.filter((user, index) => index === user_index)
-                        io.to(room_id).emit('user-leave', { ...room })
+                        let user = room.gameState.user_list[user_index];
+                        room.gameState.user_list = room.gameState.user_list.filter((user, index) => index !== user_index)
+                        io.to(room_id).emit('user-leave', { user, ...room })
                   }
             }
       });

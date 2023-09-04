@@ -1,0 +1,37 @@
+#user-list {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: var(--user-list-width);
+    background-color: #aaa;
+}
+
+#user-list-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+    margin-bottom: 10px;
+    padding: 5px 10px;
+    text-align: center;
+    border-bottom: 2px solid black;
+}
+
+.user-row {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.user-row p {
+    margin: 0;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.current-user p {
+    font-weight: bold;
+}

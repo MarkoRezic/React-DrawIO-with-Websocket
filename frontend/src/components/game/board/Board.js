@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import socketio from 'socket.io-client';
 
 import './style.css';
+import tryNTimes from '../../../utils/try_n_times';
 
 export const Board = (props) => {
     const [color, setColor] = useState("#000000")
@@ -34,19 +35,6 @@ export const Board = (props) => {
             callback();
             throttleTimer = false;
         }, time);
-    }
-
-    const tryNTimes = (callback, time, conditionCallback, tries) => {
-        console.log(tries, conditionCallback())
-        if (tries <= 0) return
-        if (!conditionCallback()) {
-            setTimeout(() => {
-                tryNTimes(callback, time, conditionCallback, tries - 1)
-            }, time)
-        }
-        else {
-            callback()
-        }
     }
 
     const emitImage = () => {
@@ -288,23 +276,10 @@ export const Board = (props) => {
             </div>
 
             <div className='row'>
-                <div id='user-list'>
-                    <p id='user-list-header'>Igrači</p>
-                    {
-                        Object.entries(users).map(([userId, user]) =>
-                            <div className={'user-row' + (userId === socketRef?.current?.id ? ' current-user' : '')} key={userId}>
-                                <p>{user?.username}</p>
-                            </div>
-                        )
-                    }
-                </div>
                 <div id="board-container">
                     <canvas ref={canvasRef} id="board" width={800} height={800}></canvas>
 
                     <div ref={penRef} id='pen-cursor'></div>
-                </div>
-                <div id='chat'>
-                    <p id='chat-header'>Chat</p>
                 </div>
             </div>
 

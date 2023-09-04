@@ -1,0 +1,162 @@
+#game-setup {
+    overflow: hidden;
+    margin: auto;
+    width: var(--board-size);
+    height: var(--board-size);
+    background: white;
+    font-family: 'Wendy One', 'Arial';
+    background-color: #777777;
+}
+
+#game-settings {
+    transform-origin: top left;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#game-settings-link {
+    width: var(--board-size);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 38px;
+}
+
+#game-settings-link p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    margin: 0;
+    background-color: white;
+    text-align: center;
+    height: 100%;
+    font-size: 13px;
+}
+
+#game-settings-link .copy-link {
+    background-color: #0C0CAA;
+    padding: 10px 20px;
+    color: white;
+}
+
+#game-settings-link .copy-link:hover {
+    cursor: pointer;
+    background-color: #1f1fcc;
+}
+
+#game-settings-link .copy-link:active {
+    cursor: pointer;
+    background-color: #16166d;
+}
+
+.game-settings-input {
+    display: flex;
+    flex-direction: row;
+    color: white;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.game-settings-input>p {
+    margin: 0;
+    margin-left: 20px;
+    font-family: 'Poppins', 'Arial';
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.game-settings-input img {
+    width: 30px;
+    height: 30px;
+}
+
+.game-settings-input .integer-input {
+    display: flex;
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.game-settings-input .integer-input-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    background-color: #0C0CAA;
+    color: white;
+    border-radius: 4px;
+    font-size: 18px;
+}
+
+.game-settings-custom-words {
+    display: flex;
+    flex-grow: 1;
+    margin-top: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+}
+
+.game-settings-custom-words>p {
+    margin: 0;
+    margin-left: 20px;
+    font-family: 'Poppins', 'Arial';
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.game-settings-custom-words textarea {
+    flex-grow: 1;
+    margin: 20px;
+    border-radius: 4px;
+    resize: none;
+    outline: none !important;
+    font-family: 'Poppins', 'Arial';
+    padding: 20px;
+    font-size: 14px;
+}
+
+.game-settings-input .integer-input-button:hover {
+    cursor: pointer;
+    background-color: #1f1fcc;
+}
+
+.game-settings-input .integer-input-button:active {
+    cursor: pointer;
+    background-color: #16166d;
+}
+
+.game-settings-input .integer-input-value {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    background-color: white;
+    color: black;
+    border-radius: 4px;
+    font-size: 18px;
+}
+
+#game-settings #btn-play {
+    width: unset !important;
+    margin: 20px;
+    margin-top: 0px;
+}
+
+#waiting-for-players {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins', 'Arial';
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}

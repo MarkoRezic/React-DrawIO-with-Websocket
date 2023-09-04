@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState, createContext, useEffect } from 'react';
 import axios from './axios';
 
@@ -9,6 +9,13 @@ export const DataProvider = (props) => {
     const {
         user,
         setUser,
+        socketRef,
+        gameSettings,
+        setGameSettings,
+        gameState,
+        setGameState,
+        gameChatMessages,
+        setGameChatMessages,
         register,
         login,
         logout,
@@ -21,6 +28,13 @@ export const DataProvider = (props) => {
             {
                 user,
                 setUser,
+                socketRef,
+                gameSettings,
+                setGameSettings,
+                gameState,
+                setGameState,
+                gameChatMessages,
+                setGameChatMessages,
                 register,
                 login,
                 logout,
@@ -35,7 +49,7 @@ export const DataProvider = (props) => {
 
 export const defaultGameSettings = {
     max_users: 5,
-    round_time: 20,
+    round_time: 60,
     round_count: 5,
     hint_count: 2,
     custom_words: []
@@ -54,13 +68,14 @@ export const defaultGameState = {
     current_word: null,
     used_custom_words: [],
     current_hints: 0,
-    chat_messages: [],
 }
 
 const useProviderFunctions = () => {
     const [user, setUser] = useState(null);
+    const socketRef = useRef(null)
     const [gameSettings, setGameSettings] = useState(defaultGameSettings);
     const [gameState, setGameState] = useState(defaultGameState);
+    const [gameChatMessages, setGameChatMessages] = useState([]);
 
     useEffect(() => {
         const localUser = localStorage.getItem("user");
@@ -140,6 +155,13 @@ const useProviderFunctions = () => {
     return {
         user,
         setUser,
+        socketRef,
+        gameSettings,
+        setGameSettings,
+        gameState,
+        setGameState,
+        gameChatMessages,
+        setGameChatMessages,
         register,
         login,
         logout,

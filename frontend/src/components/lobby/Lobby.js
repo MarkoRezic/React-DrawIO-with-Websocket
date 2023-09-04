@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
-import avatars from './avatars';
+import avatars from '../common/avatars';
 import TITLE_IMG from '../../img/title.svg'
 import io from 'socket.io-client';
+import { uuid } from 'uuidv4'
 
 import './style.css';
 import { useNavigate } from 'react-router-dom';
@@ -67,11 +68,12 @@ const Lobby = () => {
     const btnEnabled = username.trim() !== ''
 
     const joinPublicRoom = () => {
-        navigate('/public')
+        navigate('/room/public')
     }
 
     const createPrivateRoom = () => {
-
+        const room_id = uuid();
+        navigate(`/room/${room_id}`)
     }
 
     const logout = () => {
@@ -101,7 +103,7 @@ const Lobby = () => {
                 {loadingUsername ? <Loader absolute={true} style={{ borderColor: "black", right: "0" }} /> : null}
             </div>
             <button id='btn-play' className={'btn btn-primary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={joinPublicRoom}>Igraj</button>
-            <button id='btn-private-room' className={'btn btn-secondary btn-large' + (btnEnabled ? '' : ' btn-disabled')}>Kreiraj privatnu sobu</button>
+            <button id='btn-private-room' className={'btn btn-secondary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={createPrivateRoom}>Kreiraj privatnu sobu</button>
             <button id='btn-logout' className={'btn btn-tertiary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={logout}>Odjavi se</button>
         </div>
     )
