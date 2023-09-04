@@ -10,6 +10,7 @@ const Login = () => {
     const context = useContext(DataContext);
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
 
     const updateUsername = (e) => {
@@ -45,6 +46,10 @@ const Login = () => {
         }
     }
 
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword)    
+    }
+
     const btnEnabled = username.trim() !== '' && password.trim() !== '';
 
 
@@ -62,7 +67,8 @@ const Login = () => {
             </div>
             <div id='login-input-container'>
                 <label>LOZINKA</label>
-                <input type='password' placeholder='Unesite lozinku' value={password} onChange={updatePassword} />
+                <input type={showPassword ? 'text' : 'password'} placeholder='Unesite lozinku' value={password} onChange={updatePassword} />
+                <div className='show-password' onClick={toggleShowPassword}><p>{showPassword ? 'Hide' : 'Show'}</p></div>
             </div>
             <button id='btn-login' className={'btn btn-primary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={login}>Prijavi se {loading ? <Loader /> : null}</button>
             <button id='btn-register' className={'btn btn-secondary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={register}>Registriraj se {loading ? <Loader /> : null}</button>
