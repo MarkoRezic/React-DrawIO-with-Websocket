@@ -33,8 +33,34 @@ export const DataProvider = (props) => {
     );
 }
 
+export const defaultGameSettings = {
+    max_users: 5,
+    round_time: 20,
+    round_count: 5,
+    hint_count: 2,
+    custom_words: []
+}
+
+export const defaultGameState = {
+    admin_user_id: null,
+    started: false,
+    user_list: [],
+    drawing_user_id: null,
+    correct_guess_user_id_list: [],
+    total_points_user_id_map: {},
+    current_time: defaultGameSettings.round_time,
+    current_round: 1,
+    current_round_played_user_id_list: [],
+    current_word: null,
+    used_custom_words: [],
+    current_hints: 0,
+    chat_messages: [],
+}
+
 const useProviderFunctions = () => {
     const [user, setUser] = useState(null);
+    const [gameSettings, setGameSettings] = useState(defaultGameSettings);
+    const [gameState, setGameState] = useState(defaultGameState);
 
     useEffect(() => {
         const localUser = localStorage.getItem("user");
