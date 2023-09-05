@@ -8,7 +8,7 @@ import Loader from '../../common/Loader';
 const UserList = () => {
     const context = useContext(DataContext)
 
-    console.log(context?.gameState)
+    console.log(context?.gameState, context?.gameSettings)
 
     return (
         <div id='user-list'>

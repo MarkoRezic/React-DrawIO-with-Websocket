@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import avatars from '../common/avatars';
 import socketio from 'socket.io-client';
+import TITLE_IMG from '../../img/title.svg'
 
 import './style.css';
 import { DataContext } from '../../Context';
@@ -13,6 +14,8 @@ import Chat from './chat/Chat';
 import { webSocketBaseUrl } from '../../axios';
 import { useParams } from 'react-router-dom';
 import tryNTimes from '../../utils/try_n_times';
+import GameHeader from './header/GameHeader';
+import ExitModal from './modal/ExitModal';
 
 const Game = () => {
     const context = useContext(DataContext);
@@ -31,12 +34,12 @@ const Game = () => {
         })
 
         context.socketRef.current.on("user-joined", ({ user, gameState }) => {
-            toast(user?.user_id === context?.user?.user_id ? 'You joined' : `User joined: ${user?.username}`);
+            toast(user?.user_id === context?.user?.user_id ? 'Dobrodošli u sobu!' : `${user?.username} se pridružio u sobu!`, { type: "info" });
             context.setGameState(gameState)
         })
 
         context.socketRef.current.on("user-leave", ({ user, gameSettings, gameState }) => {
-            toast(user?.user_id === context?.user?.user_id ? 'You left' : `User left: ${user?.username}`);
+            toast(user?.user_id === context?.user?.user_id ? 'Napustili ste sobu' : `${user?.username} je napustio sobu`, { type: "info" });
             context.setGameState(gameState)
         })
 
@@ -51,9 +54,16 @@ const Game = () => {
                     break;
                 case 'game-over':
                     break;
+                case 'admin-change':
+                    toast('Ti si sada admin sobe!', { type: "info" })
+                    break;
                 default:
                     break;
             }
+        })
+
+        context.socketRef.current.on("update-game-settings", ({ gameSettings }) => {
+            context.setGameSettings(gameSettings)
         })
 
         tryNTimes(() => {
@@ -65,15 +75,29 @@ const Game = () => {
 
         }, 500, hasSocketId, 10)
         return () => {
-
+            context.socketRef.current.emit('leave-room', {
+                user: context?.user,
+                room_id,
+            });
         }
     }, [context?.user])
 
     return (
-        <div id="game">
-            <UserList />
-            {context?.gameState?.started === true ? <Board /> : <GameSetup />}
-            <Chat />
+        <div id='game-container'>
+            <div id='game-title'>
+                <img src={TITLE_IMG} />
+            </div>
+            <GameHeader />
+            <div id="game">
+                <UserList />
+                {context?.gameState?.started === true ? <Board /> : <GameSetup />}
+                <Chat />
+            </div>
+
+            {context?.confirmExit ?
+                <ExitModal />
+                : null
+            }
         </div>
     )
 }

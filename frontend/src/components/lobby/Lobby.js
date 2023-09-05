@@ -90,7 +90,7 @@ const Lobby = () => {
                 {
                     avatars.map((avatar, avatarIndex) =>
                         <div className={'lobby-avatar' + (avatar === selectedAvatar ? ' selected-avatar' : '')}
-                            onClick={() => { selectAvatar(avatarIndex) }}>
+                            onClick={() => { selectAvatar(avatarIndex) }} key={avatarIndex}>
                             <img src={avatar.img} />
                             {avatar === selectedAvatar && loadingAvatar ? <Loader absolute={true} /> : null}
                         </div>

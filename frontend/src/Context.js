@@ -16,11 +16,16 @@ export const DataProvider = (props) => {
         setGameState,
         gameChatMessages,
         setGameChatMessages,
+        confirmExit,
+        setConfirmExit,
         register,
         login,
         logout,
         updateUsername,
         updateAvatar,
+        openExitModal,
+        exitGame,
+        cancelExit,
     } = useProviderFunctions()
 
     return (
@@ -35,11 +40,16 @@ export const DataProvider = (props) => {
                 setGameState,
                 gameChatMessages,
                 setGameChatMessages,
+                confirmExit,
+                setConfirmExit,
                 register,
                 login,
                 logout,
                 updateUsername,
                 updateAvatar,
+                openExitModal,
+                exitGame,
+                cancelExit,
             }
         }>
             {props.children}
@@ -76,6 +86,7 @@ const useProviderFunctions = () => {
     const [gameSettings, setGameSettings] = useState(defaultGameSettings);
     const [gameState, setGameState] = useState(defaultGameState);
     const [gameChatMessages, setGameChatMessages] = useState([]);
+    const [confirmExit, setConfirmExit] = useState(false);
 
     useEffect(() => {
         const localUser = localStorage.getItem("user");
@@ -152,6 +163,21 @@ const useProviderFunctions = () => {
         setUser(null);
     }
 
+    const openExitModal = () => {
+        document.body.style.overflow = "hidden";
+        setConfirmExit(true)
+    }
+
+    const exitGame = () => {
+        document.body.style.overflow = "auto";
+        window.location.replace('/');
+    }
+
+    const cancelExit = () => {
+        document.body.style.overflow = "auto";
+        setConfirmExit(false)
+    }
+
     return {
         user,
         setUser,
@@ -162,11 +188,16 @@ const useProviderFunctions = () => {
         setGameState,
         gameChatMessages,
         setGameChatMessages,
+        confirmExit,
+        setConfirmExit,
         register,
         login,
         logout,
         updateUsername,
         updateAvatar,
+        openExitModal,
+        exitGame,
+        cancelExit,
     }
 
 }

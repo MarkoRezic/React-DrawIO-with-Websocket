@@ -5,10 +5,27 @@
     --board-size: min(90vw - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width), 90vh - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width));
 }
 
+#game-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    height: 100vh;
+    background-color: var(--lobby-background-color);
+    background-image: url('../../img/background_icons.svg');
+    background-size: contain;
+    padding: 20px;
+}
+
 #game {
     display: flex;
     flex-direction: row;
-    justify-content: stretch;
-    width: 100%;
-    height: fit-content;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0;
+}
+
+#game-title img {
+    height: 50px;
+    margin-bottom: 10px;
 }

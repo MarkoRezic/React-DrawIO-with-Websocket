@@ -4,15 +4,128 @@
     flex-grow: 1;
     flex-shrink: 1;
     width: var(--user-list-width);
-    background-color: #aaa;
+    height: var(--board-size);
+    background-color: white;
+    margin-left: 10px;
 }
 
-#chat-header {
-    font-size: 20px;
-    font-weight: bold;
+#chat-messages-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow-y: auto;
+    flex-grow: 1;
     margin: 0;
     margin-bottom: 10px;
-    padding: 5px 10px;
-    text-align: center;
-    border-bottom: 2px solid black;
+    padding-bottom: 100px;
+    border-bottom: 1px solid #ccc;
+}
+
+.message {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 5px 8px;
+    background-color: white;
+    font-family: 'Poppins', 'Arial';
+    color: black;
+    font-size: 12px;
+}
+
+.message.generic {
+    background-color: white;
+}
+
+.message.info {
+    background-color: rgba(220, 230, 240, 0.8);
+}
+
+.message.success {
+    background-color: rgba(90, 200, 40, 0.3);
+}
+
+.message.winner {
+    background-color: rgba(200, 184, 40, 0.3);
+}
+
+.message.generic span {
+    color: #111;
+}
+
+.message.info span {
+    color: rgba(28, 58, 91, 0.8);
+    font-weight: 600;
+}
+
+.message.success span {
+    color: rgba(90, 200, 40, 1);
+    font-weight: bold;
+}
+
+.message.winner span {
+    color: rgb(200, 189, 40);
+    font-weight: bold;
+}
+
+.message-user {
+    font-weight: 900 !important;
+    margin-right: 6px;
+    filter: brightness(0.9);
+    font-size: 14px;
+}
+
+.message.no-user .message-user {
+    margin-right: 0;
+}
+
+.message-text {
+    font-weight: normal;
+    font-size: 16px;
+}
+
+#chat-input-form {
+    display: contents;
+}
+
+#chat-input {
+    margin: 10px;
+    margin-top: auto;
+    background-color: #ddd;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    color: #222;
+    font-family: 'Poppins', 'Arial';
+    font-size: 12px;
+    padding: 5px;
+    outline: none !important;
+}
+
+#chat-input:focus {
+    background-color: #eee;
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    color: black;
+}
+
+/* width */
+
+#chat ::-webkit-scrollbar {
+    /* width: var(--scrollbar-width); */
+    width: 4px;
+}
+
+
+/* Track */
+
+#chat ::-webkit-scrollbar-track {
+    background: #999;
+}
+
+
+/* Handle */
+
+#chat ::-webkit-scrollbar-thumb {
+    background: var(--main-color);
 }

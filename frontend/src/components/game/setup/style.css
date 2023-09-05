@@ -43,12 +43,12 @@
 
 #game-settings-link .copy-link:hover {
     cursor: pointer;
-    background-color: #1f1fcc;
+    filter: var(--hover-filter);
 }
 
 #game-settings-link .copy-link:active {
     cursor: pointer;
-    background-color: #16166d;
+    filter: var(--active-filter);
 }
 
 .game-settings-input {
@@ -89,7 +89,7 @@
     background-color: #0C0CAA;
     color: white;
     border-radius: 4px;
-    font-size: 18px;
+    font-size: 28px;
 }
 
 .game-settings-custom-words {
@@ -123,12 +123,12 @@
 
 .game-settings-input .integer-input-button:hover {
     cursor: pointer;
-    background-color: #1f1fcc;
+    filter: var(--hover-filter);
 }
 
 .game-settings-input .integer-input-button:active {
     cursor: pointer;
-    background-color: #16166d;
+    filter: var(--active-filter);
 }
 
 .game-settings-input .integer-input-value {

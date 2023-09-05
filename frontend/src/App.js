@@ -28,6 +28,7 @@ const App = () => {
         draggable
         pauseOnHover={false}
         theme="dark"
+        toastStyle={{ backgroundColor: 'rgba(70, 70, 70, 0.85)' }}
       />
     </BrowserRouter>
   );

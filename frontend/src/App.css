@@ -63,3 +63,30 @@
 .btn-disabled {
   opacity: 0.5;
 }
+
+p:not(.selectable),
+div:not(.selectable) {
+  user-select: none;
+}
+
+
+/* width */
+
+::-webkit-scrollbar {
+  /* width: var(--scrollbar-width); */
+  width: 10px;
+}
+
+
+/* Track */
+
+::-webkit-scrollbar-track {
+  background: var(--lobby-background-color);
+}
+
+
+/* Handle */
+
+::-webkit-scrollbar-thumb {
+  background: var(--main-color);
+}

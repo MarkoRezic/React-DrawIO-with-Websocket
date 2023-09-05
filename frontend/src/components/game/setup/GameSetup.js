@@ -34,7 +34,7 @@ const GameSetup = () => {
             context.setGameSettings({
                 ...gameSettings
             });
-            emitSettings();
+            debouncedEmitSettings();
         }
     }
 
@@ -47,7 +47,7 @@ const GameSetup = () => {
             context.setGameSettings({
                 ...gameSettings
             });
-            emitSettings();
+            debouncedEmitSettings();
         }
     }
 
@@ -87,7 +87,7 @@ const GameSetup = () => {
                     </div>
                     {
                         settings.map((setting, settingIndex) =>
-                            <div className='game-settings-input'>
+                            <div className='game-settings-input' key={settingIndex}>
                                 <img src={setting.img} />
                                 <p>{setting.title}</p>
                                 <div className='integer-input'>

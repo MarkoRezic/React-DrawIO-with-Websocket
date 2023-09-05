@@ -132,6 +132,18 @@ const defaultGameState = {
       current_hints: 0,
 }
 
+const MessageAccess = {
+      public: "public",
+      private: "private",
+}
+
+const MessageType = {
+      info: "info",
+      success: "success",
+      winner: "winner",
+      generic: "generic",
+}
+
 var rooms = {
       "public": {
             gameSettings: {
@@ -164,6 +176,14 @@ const updateRooms = async () => {
                   delete rooms[room_id];
                   continue;
             }
+            // make sure there are no rooms without an admin except the public room
+            if (
+                  room_id !== "public"
+                  && (room.gameState.admin_user_id == null || room.gameState.user_list.findIndex(user => user?.user_id === room.gameState.admin_user_id) === -1)
+                  && room.gameState.user_list.length !== 0) {
+                  room.gameState.admin_user_id = room.gameState.user_list[0]?.user_id;
+                  io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name: 'admin-change' })
+            }
             if (room.gameState.started) {
                   updateGame(room_id, room);
             }
@@ -177,7 +197,6 @@ const endGame = async (room_id, room) => {
             started: false,
             drawing_user_id: null,
             correct_guess_user_id_list: [],
-            total_points_user_id_map: {},
             current_time: room.gameSettings.round_time,
             current_round: 1,
             current_round_played_user_id_list: [],
@@ -185,16 +204,45 @@ const endGame = async (room_id, room) => {
             used_custom_words: [],
             current_hints: 0,
       }
+
+      let highest_score_user_id = room.gameState.user_list?.[0]?.user_id
+      for (let [user_id, score] of Object.entries(room.gameState.total_points_user_id_map)) {
+            if (score > room.gameState.total_points_user_id_map[user_id]) {
+                  highest_score_user_id = user_id;
+            }
+      }
+
+      io.to(room_id).emit('game-chat-message', {
+            messages: [
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Igra je završila!`
+                  },
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.winner,
+                        user: room.gameState.user_list.find(user => user?.user_id === highest_score_user_id),
+                        text: `je pobijedio!`
+                  },
+            ]
+      })
 }
 
 const startGame = async (room_id, room) => {
+      let total_points_user_id_map = {}
+      for (let user of room.gameState.user_list) {
+            total_points_user_id_map[user?.user_id] = 0;
+      }
+
       room.gameState = {
             ...room.gameState,
             admin_user_id: room_id === "public" ? null : room.gameState.admin_user_id ?? room.gameState.user_list[0]?.user_id,
             started: true,
             drawing_user_id: room.gameState.user_list[0]?.user_id,
             correct_guess_user_id_list: [],
-            total_points_user_id_map: {},
+            total_points_user_id_map: total_points_user_id_map,
             current_time: room.gameSettings.round_time,
             current_round: 1,
             current_round_played_user_id_list: [],
@@ -204,18 +252,44 @@ const startGame = async (room_id, room) => {
       }
       io.to(room_id).emit('game-chat-message', {
             messages: [
-                  'Igra je započela!',
-                  `Idući crta ${room.gameState.user_list[0]?.username}`
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Igra je započela!`
+                  },
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: room.gameState.user_list[0],
+                        text: `sada crta!`
+                  },
             ]
       })
 }
 const startNextRound = async (room_id, room) => {
       io.to(room_id).emit('game-chat-message', {
             messages: [
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Riječ je bila ${room.gameState.current_word}!`
+                  },
                   // send message that next round is starting
-                  `Runda ${room.gameState.current_round + 1} započela!`,
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Runda ${room.gameState.current_round + 1} započela!`
+                  },
                   // send message that first user is drawing
-                  `Idući crta ${room.gameState.user_list[0].username}.`
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: room.gameState.user_list[0],
+                        text: `sada crta!`
+                  },
             ]
       })
       room.gameState.current_word = null;
@@ -238,11 +312,23 @@ const startNextUserTurn = async (room_id, room) => {
       // add current drawing user to played id list
       room.gameState.current_round_played_user_id_list.push(room.gameState.drawing_user_id)
       // set new drawing user id
-      room.gameState.drawing_user_id = room.gameState.user_list.find(user => !(room.gameState.current_round_played_user_id_list.includes(user.user_id))).user_id
+      const nextUser = room.gameState.user_list.find(user => !room.gameState.current_round_played_user_id_list.includes(user.user_id))
+      room.gameState.drawing_user_id = nextUser?.user_id
       // send message that next user is drawing
       io.to(room_id).emit('game-chat-message', {
             messages: [
-                  `Idući crta ${room.gameState.user_list.find(user => user.user_id === room.gameState.drawing_user_id).username}.`
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Riječ je bila ${room.gameState.current_word}!`
+                  },
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: nextUser,
+                        text: `sada crta!`
+                  },
             ]
       })
       // set current word to custom word if not all are used up
@@ -280,12 +366,13 @@ const updateGame = async (room_id, room) => {
       // game ended
       // this either happens when the number of users is less than 2 at any point
       // or when the max rounds is not -1 and the current round exceeded the max rounds
+      // or when the current round is the same as max round and all users have drawn
       if (
             (room.gameState.user_list.length < 2)
             || (
                   room.gameSettings.round_count !== -1
                   && (room.gameState.current_round > room.gameSettings.round_count)
-                  || (room.gameState.current_round === room.gameSettings.round_count && room.gameState.current_time <= 0)
+                  || (room.gameState.current_round === room.gameSettings.round_count && room.gameState.current_time <= 0 && room.gameState.user_list?.length - 1 <= room.gameState.current_round_played_user_id_list?.length)
             )) {
             endGame(room_id, room);
             event_name = 'game-over';
@@ -317,6 +404,60 @@ const updateSettings = async (room_id, room, gameSettings) => {
       io.to(room_id).emit('update-game-settings', { gameSettings: room.gameSettings })
 }
 
+const sendChatMessage = async (room_id, room, user, message) => {
+      const isCorrectGuess = message?.toLowerCase()?.normalize("NFD")?.replace(/[\u0300-\u036f]/g, "") === room?.gameState?.current_word?.toLowerCase()?.normalize("NFD")?.replace(/[\u0300-\u036f]/g, "");
+      if (isCorrectGuess) {
+            // add points for that user
+            // bonus points for guessing first 50
+            // bonus points for guessing within 10 seconds 100
+            // bonus points for word length >= 7 30 * (word_length - 6)
+            // penalty points for number of hints 10 * current_hints
+            // points based on time left 30 + 200 * (1 - ((total_time - current_time) / total_time))
+            const firstGuessPoints = room.gameState.correct_guess_user_id_list.length === 0 ? 50 : 0
+            const guess10SecondsPoints = (room.gameSettings.round_time - room.gameState.current_time) <= 10 ? 100 : 0
+            const wordLengthPoints = (room.gameState.current_word?.length >= 7) ? (30 * (room.gameState.current_word.length - 6)) : 0
+            const hintPenaltyPoints = 10 * room.gameState.current_hints
+            const timePoints = 30 + (200 * (1 - ((room.gameSettings.round_time - room.gameState.current_time) / room.gameSettings.round_time)))
+
+            console.log("POINTS", firstGuessPoints, guess10SecondsPoints, wordLengthPoints, hintPenaltyPoints, timePoints)
+            room.gameState.total_points_user_id_map[user?.user_id] +=
+                  Math.round(
+                        firstGuessPoints
+                        + guess10SecondsPoints
+                        + wordLengthPoints
+                        - hintPenaltyPoints
+                        + timePoints
+                  );
+
+            // add to correct user guesses list
+            room.gameState.correct_guess_user_id_list.push(user?.user_id)
+            io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name: 'correct_guess' });
+      }
+      io.to(room_id).emit('game-chat-message', {
+            messages: isCorrectGuess ? [
+                  {
+                        message_access: MessageAccess.private,
+                        message_type: MessageType.generic,
+                        user: user,
+                        text: message
+                  },
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.success,
+                        user: user,
+                        text: `je pogodio riječ!`
+                  },
+            ] : [
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.generic,
+                        user: user,
+                        text: message
+                  },
+            ]
+      })
+}
+
 io.on('connection', (socket) => {
       console.log('User Connected', socket.id);
       socket.on('join-room', ({ user, room_id, gameSettings }) => {
@@ -345,6 +486,8 @@ io.on('connection', (socket) => {
             // only add the user if he isn't already in the list
             if (rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user?.user_id === user?.user_id) === -1) {
                   rooms[room_id].gameState.user_list.push({ ...user, socket_id: socket.id })
+                  // initialize user points to 0
+                  rooms[room_id].gameState.total_points_user_id_map[user?.user_id] = 0;
                   // start the public room game if at least 2 users are now in room
                   if (room_id === "public" && rooms[room_id].gameState.started === false && rooms[room_id].gameState.user_list.length > 1) {
                         startGame(room_id, rooms[room_id]);
@@ -368,6 +511,13 @@ io.on('connection', (socket) => {
             }
       })
 
+      socket.on('send-message', ({ user, room_id, message }) => {
+            console.log(user, room_id, message)
+            if (rooms[room_id] != null && user != null) {
+                  sendChatMessage(room_id, rooms[room_id], user, message)
+            }
+      })
+
       socket.on('canvas-data', ({ data, id }) => {
             socket.broadcast.emit('canvas-data', { data, id });
 
@@ -378,12 +528,34 @@ io.on('connection', (socket) => {
 
             for (let [room_id, room] of Object.entries(rooms)) {
                   let user_index = room.gameState.user_list.findIndex(user => user.socket_id === socket.id)
+                  let user = null;
                   if (user_index !== -1) {
-                        let user = room.gameState.user_list[user_index];
+                        user = room.gameState.user_list[user_index];
                         room.gameState.user_list = room.gameState.user_list.filter((user, index) => index !== user_index)
                         io.to(room_id).emit('user-leave', { user, ...room })
                   }
             }
+      });
+
+      socket.on('leave-room', ({ user, room_id }) => {
+            console.log('leave-room', user, room_id)
+            // default to public room
+            room_id = room_id ?? "public"
+            // leave provided room
+            socket.leave(room_id);
+
+            // only remove the user if he is already in the list
+            const user_index = rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user?.user_id === user?.user_id);
+            if (user_index !== -1) {
+                  rooms[room_id].gameState.user_list = rooms[room_id].gameState.user_list.filter((game_user, game_user_index) => game_user_index !== user_index)
+            }
+
+            // remove the room if no users are left
+            if (room_id !== "public" && rooms[room_id] != null && rooms[room_id]?.gameState?.user_list?.length === 0) {
+                  delete rooms[room_id]
+            }
+
+            io.to(room_id).emit('user-leave', { user, ...(rooms[room_id] ?? {}) })
       });
 })
 

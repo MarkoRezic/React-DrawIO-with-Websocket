@@ -1,0 +1,78 @@
+#game-confirm-exit {
+    left: 0;
+    top: 0;
+    position: absolute;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#game-confirm-exit-background {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#game-confirm-exit-modal {
+    position: absolute;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+    height: fit-content;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px 8px rgba(0, 0, 0, 0.7);
+}
+
+.confirm-exit-title p {
+    font-size: 28px;
+    color: black;
+    font-family: 'Poppins', 'Arial';
+    font-weight: bold;
+    text-align: center;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirm-exit-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 4px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 10px;
+    min-width: 80px;
+}
+
+.confirm-exit-button:hover {
+    cursor: pointer;
+    filter: var(--hover-filter);
+}
+
+.confirm-exit-button:active {
+    cursor: pointer;
+    filter: var(--active-filter);
+}
+
+.confirm-exit-button.exit {
+    background-color: var(--main-color);
+}
+
+.confirm-exit-button.cancel {
+    background-color: #555;
+}

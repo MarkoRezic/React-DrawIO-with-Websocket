@@ -4,7 +4,9 @@
     flex-grow: 1;
     flex-shrink: 1;
     width: var(--user-list-width);
+    height: var(--board-size);
     background-color: #aaa;
+    margin-right: 10px;
 }
 
 #user-list-header {

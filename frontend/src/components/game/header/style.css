@@ -1,0 +1,90 @@
+#game-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background-color: white;
+    height: fit-content;
+}
+
+.flex-wrapper {
+    display: flex;
+}
+
+.flex-wrapper.center {
+    justify-content: center;
+    align-items: center;
+}
+
+#game-round-time {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+#game-time-progress-bar-background {
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    position: absolute;
+    display: flex;
+    height: 10px;
+    background-color: #999;
+    width: 100%;
+}
+
+#game-time-progress-bar {
+    display: flex;
+    z-index: 1;
+    height: 10px;
+    background-color: var(--main-color);
+    width: 100%;
+}
+
+#game-time {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 45px;
+    height: 45px;
+}
+
+#game-time img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#game-time p {
+    position: absolute;
+    margin: 0;
+    color: black;
+    font-family: 'Wendy One', 'Arial';
+    font-size: 18px;
+    margin-top: 5px;
+}
+
+#game-round {
+    font-family: 'Wendy One', 'Arial';
+    font-size: 22px;
+    margin: 0;
+    margin-left: 20px;
+    color: black;
+}
+
+#exit-button {
+    width: 32px;
+    height: 32px;
+}
+
+#exit-button img {
+    width: 100%;
+    height: 100%;
+}
+
+#exit-button:hover {
+    cursor: pointer;
+}
