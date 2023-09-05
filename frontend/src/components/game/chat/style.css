@@ -23,10 +23,8 @@
 }
 
 .message {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-start;
+    display: inline-block;
+    overflow-wrap: break-word;
     padding: 5px 8px;
     background-color: white;
     font-family: 'Poppins', 'Arial';

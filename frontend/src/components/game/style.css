@@ -2,7 +2,7 @@
     --container-padding: 20px;
     --header-height: 100px;
     --user-list-width: 80px;
-    --board-size: min(90vw - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width), 90vh - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width));
+    --board-size: min(80vw - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width), 80vh - 2 * var(--container-padding) - var(--header-height) - var(--user-list-width));
 }
 
 #game-container {

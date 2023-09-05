@@ -5,25 +5,23 @@
     flex-shrink: 1;
     width: var(--user-list-width);
     height: var(--board-size);
-    background-color: #aaa;
+    background-color: transparent;
     margin-right: 10px;
-}
-
-#user-list-header {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0;
-    margin-bottom: 10px;
-    padding: 5px 10px;
-    text-align: center;
-    border-bottom: 2px solid black;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .user-row {
     display: flex;
     justify-content: start;
     align-items: center;
-    padding: 5px 10px;
+    padding: 4px;
+    background-color: white;
+    margin-bottom: 4px;
+}
+
+.user-row.correct-guess {
+    background: linear-gradient(180deg, #B0FFA2 0%, #9BFF6E 100%);
 }
 
 .user-row p {
@@ -36,4 +34,42 @@
 
 .current-user p {
     font-weight: bold;
+}
+
+.user-row .user-avatar-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.user-row .user-avatar {
+    max-width: 40px;
+    height: 40px;
+}
+
+.user-row .user-username-points {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0 8px;
+}
+
+.user-row .user-username {
+    font-family: 'Wendy One', 'Arial';
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.user-row .user-points {
+    font-family: 'Wendy One', 'Arial';
+    font-weight: 900;
+    color: var(--secondary-color);
+}
+
+.user-row .user-medal {
+    height: 30px;
 }

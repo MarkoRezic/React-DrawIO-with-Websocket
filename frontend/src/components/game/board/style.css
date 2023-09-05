@@ -1,27 +1,5 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: fit-content;
-    background: linear-gradient(45deg, #03A9F4, #4CAF50);
-    padding: var(--container-padding);
-}
-
-.color-picker-container {
-    text-align: center;
-    display: inline;
-    color: white;
-}
-
-.brushsize-container {
-    display: inline;
-    color: white;
-    margin-left: 12px;
-}
-
-.tools-section {
-    height: var(--header-height);
-    text-align: center;
+    display: contents;
 }
 
 #board-container {
@@ -58,4 +36,16 @@
 
 #board-container:hover {
     cursor: none;
+}
+
+#board-container.no-draw {
+    pointer-events: none !important;
+}
+
+#board-container.no-draw:hover #pen-cursor {
+    display: none;
+}
+
+#board-container.no-draw:hover {
+    cursor: not-allowed;
 }

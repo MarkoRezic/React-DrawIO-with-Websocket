@@ -61,6 +61,21 @@
     color: #aaa;
 }
 
+.show-password {
+    margin-left: 10px;
+}
+
+.show-password p {
+    color: var(--secondary-color);
+    font-weight: bold;
+    font-size: 16px;
+    margin: 0;
+}
+
+.show-password:hover {
+    cursor: pointer;
+}
+
 #btn-login {
     width: 50%;
     margin-bottom: 20px;

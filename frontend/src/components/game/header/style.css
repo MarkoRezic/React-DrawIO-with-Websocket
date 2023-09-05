@@ -7,15 +7,6 @@
     height: fit-content;
 }
 
-.flex-wrapper {
-    display: flex;
-}
-
-.flex-wrapper.center {
-    justify-content: center;
-    align-items: center;
-}
-
 #game-round-time {
     display: flex;
     flex-direction: row;
@@ -87,4 +78,10 @@
 
 #exit-button:hover {
     cursor: pointer;
+}
+
+#infinity-round {
+    font-size: 30px;
+    font-weight: 900;
+    height: 45px;
 }

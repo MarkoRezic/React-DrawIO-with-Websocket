@@ -5,7 +5,11 @@
   --main-color: #AA0C0C;
   --main-color-dark: #880909;
   --main-gradient: linear-gradient(180deg, #AA0C0C 0%, #880909 100%);
+  --secondary-color: #0C0CAA;
+  --secondary-color-dark: #090988;
   --secondary-gradient: linear-gradient(180deg, #0C0CAA 0%, #090988 100%);
+  --tertiary-color: #a3a3a3;
+  --tertiary-color-dark: #656565;
   --tertiary-gradient: linear-gradient(180deg, #a3a3a3 0%, #656565 100%);
   --lobby-background-color: rgba(255, 155, 0, 1);
   --avatar-background-color: rgba(191, 166, 128, 1);
@@ -67,6 +71,20 @@
 p:not(.selectable),
 div:not(.selectable) {
   user-select: none;
+}
+
+
+.flex-wrapper {
+  display: flex;
+}
+
+.flex-wrapper.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-wrapper.full-width {
+  width: 100%;
 }
 
 

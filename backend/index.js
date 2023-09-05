@@ -5,7 +5,7 @@ import express from 'express'
 import cors from 'cors'
 import { db } from './database.js';
 const app = express();
-app.use(cors({ origin: frontend_origin, credentials: true }))
+app.use(cors({ origin: [frontend_origin], credentials: true }))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -102,7 +102,7 @@ import { Server } from "socket.io";
 const httpServer = createServer();
 const io = new Server(httpServer, {
       cors: {
-            origin: frontend_origin,
+            origin: [frontend_origin],
             credentials: true
       }
 });
@@ -372,18 +372,19 @@ const updateGame = async (room_id, room) => {
             || (
                   room.gameSettings.round_count !== -1
                   && (room.gameState.current_round > room.gameSettings.round_count)
-                  || (room.gameState.current_round === room.gameSettings.round_count && room.gameState.current_time <= 0 && room.gameState.user_list?.length - 1 <= room.gameState.current_round_played_user_id_list?.length)
+                  || (room.gameState.current_round === room.gameSettings.round_count && room.gameState.current_time <= 0
+                        && room.gameState.user_list?.length - 1 <= room.gameState.current_round_played_user_id_list?.length)
             )) {
             endGame(room_id, room);
             event_name = 'game-over';
       }
       // current round user turn ended
-      else if (room.gameState.current_time <= 0 && room.gameState.current_round_played_user_id_list.length < room.gameState.user_list.length - 1) {
+      else if ((room.gameState.current_time <= 0 || room.gameState.correct_guess_user_id_list.length >= room.gameState.user_list.length - 1) && room.gameState.current_round_played_user_id_list.length < room.gameState.user_list.length - 1) {
             startNextUserTurn(room_id, room);
             event_name = 'next-user-turn';
       }
       // round ended
-      else if (room.gameState.current_time <= 0) {
+      else if (room.gameState.current_time <= 0 || room.gameState.correct_guess_user_id_list.length >= room.gameState.user_list.length - 1) {
             startNextRound(room_id, room);
             event_name = 'next-round';
       }
@@ -483,8 +484,12 @@ io.on('connection', (socket) => {
                         }
                   }
             }
-            // only add the user if he isn't already in the list
-            if (rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user?.user_id === user?.user_id) === -1) {
+            // only add the user if he isn't already in the list and if the room isn't full
+            if (
+                  (room_id === "public" || rooms[room_id].gameState.user_list.length < rooms[room_id].gameSettings.max_users)
+                  && rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id
+                        || game_user?.user_id === user?.user_id) === -1
+            ) {
                   rooms[room_id].gameState.user_list.push({ ...user, socket_id: socket.id })
                   // initialize user points to 0
                   rooms[room_id].gameState.total_points_user_id_map[user?.user_id] = 0;
@@ -492,8 +497,15 @@ io.on('connection', (socket) => {
                   if (room_id === "public" && rooms[room_id].gameState.started === false && rooms[room_id].gameState.user_list.length > 1) {
                         startGame(room_id, rooms[room_id]);
                   }
+                  io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id].gameState });
             }
-            io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id].gameState });
+            else {
+                  // redirect user with message if failed to join
+                  socket.emit('join-failed', {
+                        reason: rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id
+                              || game_user?.user_id === user?.user_id) === -1 ? "ROOM_FULL" : "ALREADY_JOINED"
+                  })
+            }
       });
 
       socket.on('change-settings', ({ room_id, gameSettings }) => {
@@ -518,8 +530,8 @@ io.on('connection', (socket) => {
             }
       })
 
-      socket.on('canvas-data', ({ data, id }) => {
-            socket.broadcast.emit('canvas-data', { data, id });
+      socket.on('canvas-data', ({ data, room_id }) => {
+            socket.broadcast.to(room_id).emit('canvas-data', { data });
 
       })
 
@@ -545,7 +557,7 @@ io.on('connection', (socket) => {
             socket.leave(room_id);
 
             // only remove the user if he is already in the list
-            const user_index = rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id || game_user?.user_id === user?.user_id);
+            const user_index = rooms[room_id].gameState.user_list.findIndex(game_user => game_user?.socket_id === socket?.id);
             if (user_index !== -1) {
                   rooms[room_id].gameState.user_list = rooms[room_id].gameState.user_list.filter((game_user, game_user_index) => game_user_index !== user_index)
             }

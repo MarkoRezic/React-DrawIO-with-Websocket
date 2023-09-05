@@ -12,14 +12,17 @@ import { Board } from './board/Board';
 import GameSetup from './setup/GameSetup';
 import Chat from './chat/Chat';
 import { webSocketBaseUrl } from '../../axios';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import tryNTimes from '../../utils/try_n_times';
 import GameHeader from './header/GameHeader';
 import ExitModal from './modal/ExitModal';
+import Tools from './board/tools/Tools';
 
 const Game = () => {
     const context = useContext(DataContext);
     const { room_id } = useParams();
+
+    const navigate = useNavigate()
 
     const hasSocketId = () => {
         return context?.socketRef?.current?.id != null
@@ -31,6 +34,11 @@ const Game = () => {
         }
         context.socketRef.current = socketio.connect(webSocketBaseUrl, {
             withCredentials: true
+        })
+
+        context.socketRef.current.on("join-failed", ({ reason }) => {
+            toast(`Pridruživanje nije uspjelo, ${reason === "ROOM_FULL" ? 'igra je puna' : 'već ste u igri'}`)
+            navigate('/')
         })
 
         context.socketRef.current.on("user-joined", ({ user, gameState }) => {
@@ -93,6 +101,7 @@ const Game = () => {
                 {context?.gameState?.started === true ? <Board /> : <GameSetup />}
                 <Chat />
             </div>
+            <Tools />
 
             {context?.confirmExit ?
                 <ExitModal />

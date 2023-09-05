@@ -26,6 +26,10 @@ export const DataProvider = (props) => {
         openExitModal,
         exitGame,
         cancelExit,
+        color,
+        setColor,
+        size,
+        setSize,
     } = useProviderFunctions()
 
     return (
@@ -50,6 +54,10 @@ export const DataProvider = (props) => {
                 openExitModal,
                 exitGame,
                 cancelExit,
+                color,
+                setColor,
+                size,
+                setSize,
             }
         }>
             {props.children}
@@ -88,8 +96,12 @@ const useProviderFunctions = () => {
     const [gameChatMessages, setGameChatMessages] = useState([]);
     const [confirmExit, setConfirmExit] = useState(false);
 
+    // Canvas tools
+    const [color, setColor] = useState("#000000")
+    const [size, setSize] = useState(5)
+
     useEffect(() => {
-        const localUser = localStorage.getItem("user");
+        const localUser = sessionStorage.getItem("user");
         if (localUser == null && window.location.pathname !== '/login') {
             window.location.replace('/login')
         }
@@ -107,7 +119,7 @@ const useProviderFunctions = () => {
             password,
         }).then((response) => {
             console.log(response);
-            localStorage.setItem("user", JSON.stringify(response?.data?.user));
+            sessionStorage.setItem("user", JSON.stringify(response?.data?.user));
             setUser(response?.data?.user);
         }).catch((error) => {
             console.log(error);
@@ -135,7 +147,7 @@ const useProviderFunctions = () => {
             console.log(response);
             console.log(username);
             console.log({ ...user, username: username });
-            localStorage.setItem("user", JSON.stringify({ ...user, username }));
+            sessionStorage.setItem("user", JSON.stringify({ ...user, username }));
             setUser({ ...user, username });
             callback(response);
         }).catch((error) => {
@@ -149,7 +161,7 @@ const useProviderFunctions = () => {
             avatar
         }).then((response) => {
             console.log(response);
-            localStorage.setItem("user", JSON.stringify({ ...user, avatar }));
+            sessionStorage.setItem("user", JSON.stringify({ ...user, avatar }));
             setUser({ ...user, avatar });
             callback(response);
         }).catch((error) => {
@@ -159,7 +171,7 @@ const useProviderFunctions = () => {
     }
 
     const logout = () => {
-        localStorage.removeItem("user")
+        sessionStorage.removeItem("user")
         setUser(null);
     }
 
@@ -198,6 +210,10 @@ const useProviderFunctions = () => {
         openExitModal,
         exitGame,
         cancelExit,
+        color,
+        setColor,
+        size,
+        setSize,
     }
 
 }

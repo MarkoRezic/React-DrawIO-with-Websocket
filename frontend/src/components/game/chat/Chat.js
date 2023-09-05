@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 
 import './style.css';
 import { DataContext } from '../../../Context';
@@ -9,8 +9,12 @@ import { useParams } from 'react-router-dom';
 const Chat = () => {
     const context = useContext(DataContext);
     const { room_id } = useParams();
+    const messsagesRef = useRef([])
+
     const [message, setMessage] = useState('');
-    const [messagesList, setMessagesList] = useState([]);
+    const [messagesList, setMessagesList] = useState(messsagesRef.current);
+    const [socketInit, setSocketInit] = useState(false)
+
 
     const MessageAccess = {
         public: "public",
@@ -25,21 +29,25 @@ const Chat = () => {
     }
 
     useEffect(() => {
-        if (context?.socketRef?.current == null) {
+        if (context?.socketRef?.current == null || socketInit) {
             return;
         }
+        console.log("TEST")
+
+        setSocketInit(true)
 
         context.socketRef.current.on("game-chat-message", ({ messages }) => {
-            setMessagesList(
-                [...messagesList,
-                ...messages.filter(chatMessage =>
-                (chatMessage.message_access === MessageAccess.public
-                    || context?.user?.user_id === message?.user?.user_id)
-                )
-                ]);
+            messsagesRef.current = [...messsagesRef.current, ...messages.filter(chatMessage => chatMessage.message_access === MessageAccess.public
+                || context?.user?.user_id === message?.user?.user_id)]
+            setMessagesList(messsagesRef.current);
         });
 
-    }, [context?.socketRef?.current, messagesList, setMessagesList])
+    }, [context?.socketRef?.current])
+
+    useEffect(() => {
+        let chatList = document.getElementById('chat-messages-list')
+        chatList.scrollTop = chatList.scrollHeight;
+    }, [messagesList, setMessagesList])
 
     const updateMessage = (e) => {
         setMessage(e?.target?.value)
@@ -50,6 +58,7 @@ const Chat = () => {
         if (message.length === 0) {
             return;
         }
+
         context.socketRef.current.emit('send-message', {
             user: context?.user,
             room_id,

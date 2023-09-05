@@ -1,14 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import socketio from 'socket.io-client';
 
 import './style.css';
 import tryNTimes from '../../../utils/try_n_times';
+import { DataContext } from '../../../Context';
+import { useParams } from 'react-router-dom';
 
 export const Board = (props) => {
-    const [color, setColor] = useState("#000000")
-    const [size, setSize] = useState(5)
+    const context = useContext(DataContext)
+    const { room_id } = useParams()
+
     const [canvasImage, setCanvasImage] = useState(null)
     const canvasRef = useRef(null)
     const penRef = useRef(null)
@@ -23,8 +26,6 @@ export const Board = (props) => {
         height: 800
     }
 
-    const socketRef = useRef(null)
-
     const [users, setUsers] = useState({})
 
     let throttleTimer;
@@ -38,13 +39,12 @@ export const Board = (props) => {
     }
 
     const emitImage = () => {
-        console.log("emit from", socketRef.current.id)
         var base64ImageData = canvasRef.current.toDataURL("image/png");
-        socketRef.current.emit("canvas-data", { data: base64ImageData, id: socketRef.current.id });
+        context.socketRef.current.emit("canvas-data", { data: base64ImageData, room_id });
     }
 
     const saveImage = (image) => {
-        console.log("saved", socketRef.current.id)
+        console.log("saved", context.socketRef.current.id)
         if (image != null) {
             setCanvasImage(image);
         }
@@ -57,8 +57,7 @@ export const Board = (props) => {
         }
     }
 
-    const receiveImage = ({ data, id }) => {
-        console.log("receive from", id)
+    const receiveImage = ({ data }) => {
         var image = new Image();
         var ctx = canvasRef.current.getContext('2d');
         image.onload = function () {
@@ -67,42 +66,6 @@ export const Board = (props) => {
         };
         image.src = data;
     }
-
-    const hasSocketId = () => {
-        return socketRef?.current?.id != null
-    }
-
-    useEffect(() => {
-        socketRef.current = socketio.connect("http://localhost:5000", {
-            withCredentials: true
-        })
-
-        socketRef.current.on("user-joined", ({ userList, userId }) => {
-            console.log(userList)
-            toast(userId === socketRef.current?.id ? 'You joined' : `User joined: ${userList[userId]['username']}`);
-            setUsers(userList)
-        })
-
-        socketRef.current.on("user-leave", ({ userList, userId, username }) => {
-            console.log(userList)
-            toast(userId === socketRef.current?.id ? 'You left' : `User left: ${username}`);
-            setUsers(userList)
-        })
-
-        tryNTimes(() => {
-            socketRef.current.emit("login", {
-                previousId: sessionStorage.getItem("previousId"),
-                newId: socketRef.current.id,
-                username: sessionStorage.getItem("username") ?? sessionStorage.getItem("previousId") ?? socketRef.current.id
-            });
-            sessionStorage.setItem("username", sessionStorage.getItem("username") ?? sessionStorage.getItem("previousId") ?? socketRef.current.id)
-            sessionStorage.setItem("previousId", socketRef.current.id)
-
-        }, 500, hasSocketId, 10)
-        return () => {
-
-        }
-    }, [])
 
     const updatePenPosition = (e) => {
         /* Move Pen Cursor */
@@ -124,19 +87,38 @@ export const Board = (props) => {
         configPen();
         return () => {
         }
-    }, [color, size, penRef.current])
+    }, [context.color, context.size, penRef.current])
 
     useEffect(() => {
-        if (canvasRef.current == null) return
+        if (canvasRef.current == null || context.socketRef.current == null) return
         //setIsConfigured(true)
-        socketRef.current.on("canvas-data", receiveImage)
+        context.socketRef.current.on("canvas-data", receiveImage)
+
+        context.socketRef.current.on("update-game-state", ({ gameState, event_name }) => {
+            switch (event_name) {
+                case 'next-tick':
+                    break;
+                case 'next-user-turn':
+                case 'next-round':
+                case 'game-over':
+                    const ctx = canvasRef.current?.getContext('2d');
+                    if (ctx != null) {
+                        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                    }
+                    break;
+                case 'admin-change':
+                    break;
+                default:
+                    break;
+            }
+        })
 
         configCanvas();
         window.addEventListener('resize', configCanvas, false);
         return () => {
             window.removeEventListener('resize', configCanvas, false);
         }
-    }, [canvasRef.current])
+    }, [canvasRef.current, context.socketRef.current])
 
     useEffect(() => {
         if (canvasImage == null || canvasRef.current == null) return
@@ -152,10 +134,10 @@ export const Board = (props) => {
         var ctx = canvasRef.current.getContext('2d');
 
         /* Configure Pen Stroke */
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = context.color;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
-        ctx.lineWidth = size;
+        ctx.lineWidth = context.size;
 
         var container = document.querySelector('#board-container');
         let scale = 1;
@@ -165,8 +147,8 @@ export const Board = (props) => {
             scale = ww / CANVAS_SIZE.width;
         }
 
-        penRef.current.style.width = scale * size + 'px'
-        penRef.current.style.height = scale * size + 'px'
+        penRef.current.style.width = scale * context.size + 'px'
+        penRef.current.style.height = scale * context.size + 'px'
     }
 
     const configCanvasSize = () => {
@@ -264,19 +246,9 @@ export const Board = (props) => {
 
     return (
         <div className="container">
-            <div class="tools-section">
-                <div className="color-picker-container">
-                    Boja Olovke: &nbsp;
-                    <input type="color" value={color} onChange={(e) => { setColor(e.target.value) }} />
-                </div>
-                <div className="brushsize-container">
-                    Veličina Olovke: &nbsp;
-                    <input type='range' value={size} onChange={(e) => { setSize(e.target.value) }} min={1} max={100} />
-                </div>
-            </div>
 
             <div className='row'>
-                <div id="board-container">
+                <div id="board-container" className={context?.gameState?.drawing_user_id !== context?.user?.user_id ? 'no-draw' : ''}>
                     <canvas ref={canvasRef} id="board" width={800} height={800}></canvas>
 
                     <div ref={penRef} id='pen-cursor'></div>

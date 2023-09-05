@@ -47,7 +47,7 @@ const Login = () => {
     }
 
     const toggleShowPassword = () => {
-        setShowPassword(!showPassword)    
+        setShowPassword(!showPassword)
     }
 
     const btnEnabled = username.trim() !== '' && password.trim() !== '';
@@ -67,8 +67,10 @@ const Login = () => {
             </div>
             <div id='login-input-container'>
                 <label>LOZINKA</label>
-                <input type={showPassword ? 'text' : 'password'} placeholder='Unesite lozinku' value={password} onChange={updatePassword} />
-                <div className='show-password' onClick={toggleShowPassword}><p>{showPassword ? 'Hide' : 'Show'}</p></div>
+                <div className='flex-wrapper full-width'>
+                    <input type={showPassword ? 'text' : 'password'} placeholder='Unesite lozinku' value={password} onChange={updatePassword} />
+                    <div className='show-password selectable' onClick={toggleShowPassword}><p>{showPassword ? 'Sakrij' : 'Prikaži'}</p></div>
+                </div>
             </div>
             <button id='btn-login' className={'btn btn-primary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={login}>Prijavi se {loading ? <Loader /> : null}</button>
             <button id='btn-register' className={'btn btn-secondary btn-large' + (btnEnabled ? '' : ' btn-disabled')} onClick={register}>Registriraj se {loading ? <Loader /> : null}</button>
