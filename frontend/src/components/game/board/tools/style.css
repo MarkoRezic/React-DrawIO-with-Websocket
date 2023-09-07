@@ -1,6 +1,12 @@
 #color-picker-container {
     color: black;
-    font-family: 'Arial';
+    -webkit-text-fill-color: var(--modal-background-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+    font-size: 24px;
+    font-family: 'Tahoma';
     font-weight: bold;
     text-align: center;
     display: flex;
@@ -10,7 +16,13 @@
 
 #brushsize-container {
     color: black;
-    font-family: 'Arial';
+    -webkit-text-fill-color: var(--modal-background-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+    font-size: 24px;
+    font-family: 'Tahoma';
     font-weight: bold;
     display: flex;
     justify-content: center;
@@ -27,27 +39,34 @@
     height: fit-content;
     padding: 10px 20px;
     height: 40px;
+    box-shadow: var(--container-shadow);
 }
 
-#guess-word-container {
+#guess-word-container,
+#draw-word-container {
     display: inline-block;
     color: black;
-    font-family: 'Arial';
-    font-size: 24px;
+    -webkit-text-fill-color: var(--main-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+    font-family: 'Tahoma', 'Arial';
+    font-size: 28px;
     font-weight: 900;
 }
 
 #draw-word-container {
-    display: inline-block;
-    color: black;
-    font-family: 'Arial';
-    font-weight: 900;
     margin-left: auto;
-    font-size: 18px;
 }
 
 .guess-word-letter {
+    -webkit-text-fill-color: var(--lobby-background-color);
     margin-left: 6px;
+}
+
+.draw-word-letter {
+    -webkit-text-fill-color: var(--lobby-background-color);
 }
 
 /********** Range Input Styles **********/
@@ -67,14 +86,14 @@ input[type="range"]:focus {
 
 
 input[type="range"]::-webkit-slider-runnable-track {
-    background: var(--main-color);
+    background: var(--drawing-color);
     height: 0.5rem;
     border-radius: 3px;
 }
 
 /******** Firefox ********/
 input[type="range"]::-moz-range-track {
-    background: var(--main-color);
+    background: var(--drawing-color);
     height: 0.5rem;
     border-radius: 3px;
 }
@@ -85,12 +104,31 @@ input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     /* Override default look */
     appearance: none;
-    margin-top: -6px;
+    margin-top: -8px;
     /* Centers thumb on the track */
-    background-color: var(--main-color);
+    background-color: var(--drawing-color);
     height: 20px;
     width: 20px;
     border-radius: 50%;
+}
+
+
+
+input[type="range"].light::-webkit-slider-runnable-track {
+    border: 2px solid black;
+}
+
+input[type="range"].light::-webkit-slider-thumb {
+    border: 2px solid black;
+}
+
+
+input[type="range"].dark::-webkit-slider-runnable-track {
+    border: 2px solid #aaa;
+}
+
+input[type="range"].dark::-webkit-slider-thumb {
+    border: 2px solid #aaa;
 }
 
 

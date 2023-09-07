@@ -7,6 +7,7 @@ import Loader from '../../common/Loader';
 import settings from '../../common/settings';
 import { useParams } from 'react-router-dom';
 import useDebounce from '../../../utils/use_debounce';
+import { AudioManager, SoundType } from '../../../AudioManager';
 
 const GameSetup = () => {
     const context = useContext(DataContext);
@@ -14,6 +15,7 @@ const GameSetup = () => {
     const [copied, setCopied] = useState(false);
 
     const copyLink = () => {
+        AudioManager.playSound(SoundType.button)
         window.navigator.clipboard.writeText(window.location.href);
         setCopied(true)
     }
@@ -26,6 +28,7 @@ const GameSetup = () => {
     }
 
     const decrementSetting = (settingIndex) => {
+        AudioManager.playSound(SoundType.button)
         if (settingIndex === 0 && context?.gameState?.user_list?.length >= context?.gameSettings?.[settings[settingIndex].key]) {
             return;
         }
@@ -42,6 +45,7 @@ const GameSetup = () => {
     }
 
     const incrementSetting = (settingIndex) => {
+        AudioManager.playSound(SoundType.button)
         if (context?.gameSettings?.[settings[settingIndex].key] < settings[settingIndex].max) {
             const gameSettings = {
                 ...context?.gameSettings,
@@ -70,6 +74,7 @@ const GameSetup = () => {
     }
 
     const startGame = () => {
+        AudioManager.playSound(SoundType.button)
         context.socketRef.current.emit('start-game', {
             user: context?.user,
             room_id,

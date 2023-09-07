@@ -12,9 +12,12 @@
   --tertiary-color-dark: #656565;
   --tertiary-gradient: linear-gradient(180deg, #a3a3a3 0%, #656565 100%);
   --lobby-background-color: rgba(255, 155, 0, 1);
+  --modal-background-color: #ffb;
   --avatar-background-color: rgba(191, 166, 128, 1);
   --hover-filter: brightness(1.15);
   --active-filter: brightness(0.85);
+  --container-shadow: 5px 5px 0px 1px rgba(0, 0, 0, 0.2);
+  --drawing-color: black;
 }
 
 .btn {
@@ -85,6 +88,54 @@ div:not(.selectable) {
 
 .flex-wrapper.full-width {
   width: 100%;
+}
+
+#score-settings-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#open-score-button,
+#open-settings-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+#open-score-button:hover,
+#open-settings-button:hover {
+  cursor: pointer;
+  filter: var(--hover-filter);
+}
+
+#open-score-button:active,
+#open-settings-button:active {
+  cursor: pointer;
+  filter: var(--active-filter);
+}
+
+#open-score-button img,
+#open-settings-button img {
+  width: 30px;
+  height: 30px;
+}
+
+#open-score-button {
+  margin: 10px;
+  background-color: var(--secondary-color);
+}
+
+#open-settings-button {
+  margin: 10px;
+  background-color: var(--main-color);
 }
 
 

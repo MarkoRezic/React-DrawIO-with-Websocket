@@ -3,7 +3,7 @@
     height: 24px;
     margin: 5px 10px;
     border: 4px solid #FFF;
-    border-bottom-color: transparent;
+    border-bottom-color: transparent !important;
     border-radius: 50%;
     display: inline-block;
     box-sizing: border-box;
@@ -22,4 +22,310 @@
     100% {
         transform: rotate(360deg);
     }
+}
+
+/*Settings modal*/
+
+
+#settings-modal-container {
+    left: 0;
+    top: 0;
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#settings-modal-background {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#settings-modal {
+    position: absolute;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 450px;
+    height: 250px;
+    background-color: var(--modal-background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--container-shadow);
+}
+
+#settings-modal-close {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#settings-modal-close:hover {
+    cursor: pointer;
+    filter: var(--hover-filter);
+}
+
+#settings-modal-close:active {
+    cursor: pointer;
+    filter: var(--active-filter);
+}
+
+#settings-modal-close img {
+    width: 40px;
+    height: 40px;
+}
+
+.settings-modal-title p {
+    font-size: 38px;
+    color: black;
+    font-family: 'Wendy One', 'Arial';
+    font-weight: bold;
+    text-align: center;
+}
+
+.settings-modal-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-modal-setting-name {
+    flex-grow: 1;
+    color: black;
+    font-size: 18px;
+    font-weight: 900;
+    font-family: 'Arial';
+    margin-right: 20px;
+}
+
+.settings-modal-row .slider {}
+
+
+/********** Range Input Styles **********/
+/*Range Reset*/
+#settings-modal-container input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 12vw;
+}
+
+/* Removes default focus */
+#settings-modal-container input[type="range"]:focus {
+    outline: none;
+}
+
+
+#settings-modal-container input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--drawing-color);
+    height: 0.5rem;
+    border-radius: 3px;
+}
+
+/******** Firefox ********/
+#settings-modal-container input[type="range"]::-moz-range-track {
+    background: var(--drawing-color);
+    height: 0.5rem;
+    border-radius: 3px;
+}
+
+/***** Thumb Styles *****/
+/***** Chrome, Safari, Opera, and Edge Chromium *****/
+#settings-modal-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    /* Override default look */
+    appearance: none;
+    margin-top: -6px;
+    /* Centers thumb on the track */
+    background-color: var(--drawing-color);
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+}
+
+/*Scores modal*/
+
+
+
+#scores-modal-container {
+    left: 0;
+    top: 0;
+    position: fixed;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#scores-modal-background {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+#scores-modal {
+    position: absolute;
+    top: 25%;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 350px;
+    height: fit-content;
+    max-height: 600px;
+    background-color: var(--modal-background-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: var(--container-shadow);
+    overflow-y: auto;
+}
+
+#scores-modal-close {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#scores-modal-close:hover {
+    cursor: pointer;
+    filter: var(--hover-filter);
+}
+
+#scores-modal-close:active {
+    cursor: pointer;
+    filter: var(--active-filter);
+}
+
+#scores-modal-close img {
+    width: 40px;
+    height: 40px;
+}
+
+.scores-modal-title p {
+    font-size: 38px;
+    color: black;
+    font-family: 'Wendy One', 'Arial';
+    font-weight: bold;
+    text-align: center;
+}
+
+.scores-modal-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Wendy One', 'Tahoma';
+    font-weight: 900;
+}
+
+.scores-modal-setting-value {
+    margin: 0 10px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 32px;
+    width: 32px;
+    color: black;
+    -webkit-text-fill-color: var(--main-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+}
+
+.scores-modal-setting-name {
+    flex-grow: 1;
+    color: black;
+    font-size: 18px;
+    font-weight: 900;
+    font-size: 24px;
+    font-family: 'Tahoma';
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.arrow-button {
+    font-size: 50px;
+    cursor: pointer;
+    color: black;
+    -webkit-text-fill-color: var(--main-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+}
+
+#empty-scores {
+    margin: 20px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 28px;
+    color: black;
+    -webkit-text-fill-color: var(--main-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+    font-family: 'Wendy One', 'Tahoma';
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-top: 1px solid black;
+    padding: 5px 0;
+}
+
+.score-row:nth-child(5) {
+    margin-top: 20px;
+}
+
+.score-username {
+    margin: 0;
+    font-family: 'Wendy One', 'Tahoma';
+    font-weight: 900;
+    font-size: 24px;
+}
+
+.score-points {
+    margin: 0;
+    font-family: 'Wendy One', 'Tahoma';
+    font-weight: 900;
+    font-size: 24px;
+    color: black;
+    -webkit-text-fill-color: var(--lobby-background-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+}
+
+.score-position {
+    margin: 0;
+    font-family: 'Wendy One', 'Tahoma';
+    font-weight: 900;
+    font-size: 32px;
+    color: black;
+    -webkit-text-fill-color: var(--main-color);
+    /* Will override color (regardless of order) */
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: black;
+    text-shadow: 2px 1px 1px black;
+    width: 28px;
 }

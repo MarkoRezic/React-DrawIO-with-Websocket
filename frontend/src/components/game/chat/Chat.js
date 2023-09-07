@@ -5,6 +5,7 @@ import { DataContext } from '../../../Context';
 import { toast } from 'react-toastify';
 import Loader from '../../common/Loader';
 import { useParams } from 'react-router-dom';
+import { AudioManager, SoundType } from '../../../AudioManager';
 
 const Chat = () => {
     const context = useContext(DataContext);
@@ -37,6 +38,7 @@ const Chat = () => {
         setSocketInit(true)
 
         context.socketRef.current.on("game-chat-message", ({ messages }) => {
+            AudioManager.playSound(SoundType.chat)
             messsagesRef.current = [...messsagesRef.current, ...messages.filter(chatMessage => chatMessage.message_access === MessageAccess.public
                 || context?.user?.user_id === message?.user?.user_id)]
             setMessagesList(messsagesRef.current);

@@ -4,9 +4,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import socketio from 'socket.io-client';
 
 import './style.css';
-import tryNTimes from '../../../utils/try_n_times';
 import { DataContext } from '../../../Context';
 import { useParams } from 'react-router-dom';
+import { AudioManager, SoundType } from '../../../AudioManager';
+import PlayerTurnOverlay from '../overlay/PlayerTurnOverlay';
 
 export const Board = (props) => {
     const context = useContext(DataContext)
@@ -25,8 +26,6 @@ export const Board = (props) => {
         width: 800,
         height: 800
     }
-
-    const [users, setUsers] = useState({})
 
     let throttleTimer;
     const throttle = (callback, time) => {
@@ -59,11 +58,13 @@ export const Board = (props) => {
 
     const receiveImage = ({ data }) => {
         var image = new Image();
-        var ctx = canvasRef.current.getContext('2d');
-        image.onload = function () {
-            ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasRef.current.width, canvasRef.current.height);
-            saveImage(image)
-        };
+        var ctx = canvasRef?.current?.getContext?.('2d');
+        if (ctx != null) {
+            image.onload = function () {
+                ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasRef.current.width, canvasRef.current.height);
+                saveImage(image)
+            };
+        }
         image.src = data;
     }
 
@@ -74,11 +75,18 @@ export const Board = (props) => {
     }
 
     useEffect(() => {
+        AudioManager.playSound(SoundType.game_start)
+    }, [])
+
+    useEffect(() => {
         if (canvasRef.current == null || penRef.current == null) return
         console.log("test")
         canvasRef.current.addEventListener('mousemove', updatePenPosition);
         return () => {
-            canvasRef.current.removeEventListener('mousemove', updatePenPosition);
+
+            if (canvasRef.current != null) {
+                canvasRef.current.removeEventListener('mousemove', updatePenPosition);
+            }
         }
     }, [canvasRef.current, penRef.current])
 
@@ -228,6 +236,8 @@ export const Board = (props) => {
             canvasRef.current.removeEventListener('mousedown', listenersRef.current.onMouseDown, false);
 
             canvasRef.current.removeEventListener('mouseup', listenersRef.current.onMouseUp, false);
+
+            canvasRef.current.removeEventListener('mouseleave', listenersRef.current.onMouseUp, false);
         }
 
         listenersRef.current = {
@@ -242,16 +252,23 @@ export const Board = (props) => {
         canvasRef.current.addEventListener('mousedown', listenersRef.current.onMouseDown, false);
 
         canvasRef.current.addEventListener('mouseup', listenersRef.current.onMouseUp, false);
+
+        canvasRef.current.addEventListener('mouseleave', listenersRef.current.onMouseUp, false);
     }
 
     return (
         <div className="container">
 
             <div className='row'>
-                <div id="board-container" className={context?.gameState?.drawing_user_id !== context?.user?.user_id ? 'no-draw' : ''}>
+                <div id="board-container"
+                    className={`
+                    ${context?.gameState?.drawing_user_id !== context?.user?.user_id ? 'no-draw' : ''}
+                    ${context?.showPlayerOverlay === true ? 'position-relative' : ''}
+                    `}
+                >
                     <canvas ref={canvasRef} id="board" width={800} height={800}></canvas>
-
                     <div ref={penRef} id='pen-cursor'></div>
+                    <PlayerTurnOverlay />
                 </div>
             </div>
 

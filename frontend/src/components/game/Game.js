@@ -17,6 +17,7 @@ import tryNTimes from '../../utils/try_n_times';
 import GameHeader from './header/GameHeader';
 import ExitModal from './modal/ExitModal';
 import Tools from './board/tools/Tools';
+import { AudioManager, SoundType } from '../../AudioManager';
 
 const Game = () => {
     const context = useContext(DataContext);
@@ -25,8 +26,12 @@ const Game = () => {
     const navigate = useNavigate()
 
     const hasSocketId = () => {
-        return context?.socketRef?.current?.id != null
+        return context?.socketRef?.current != null
     }
+
+    useEffect(() => {
+        sessionStorage.setItem('last-room-id', room_id ?? '')
+    }, [])
 
     useEffect(() => {
         if (context?.user == null) {
@@ -41,29 +46,48 @@ const Game = () => {
             navigate('/')
         })
 
-        context.socketRef.current.on("user-joined", ({ user, gameState }) => {
-            toast(user?.user_id === context?.user?.user_id ? 'Dobrodošli u sobu!' : `${user?.username} se pridružio u sobu!`, { type: "info" });
+        context.socketRef.current.on("user-joined", ({ user, gameState, silent }) => {
             context.setGameState(gameState)
+            if (silent === true) {
+                return;
+            }
+            AudioManager.playSound(SoundType.player_join)
+            toast(user?.user_id === context?.user?.user_id ? 'Dobrodošli u sobu!' : `${user?.username} se pridružio u sobu!`, { type: "info" });
         })
 
         context.socketRef.current.on("user-leave", ({ user, gameSettings, gameState }) => {
+            AudioManager.playSound(SoundType.player_leave)
             toast(user?.user_id === context?.user?.user_id ? 'Napustili ste sobu' : `${user?.username} je napustio sobu`, { type: "info" });
             context.setGameState(gameState)
         })
 
-        context.socketRef.current.on("update-game-state", ({ gameState, event_name }) => {
+        context.socketRef.current.on("update-game-state", ({ gameState, gameSettings, event_name }) => {
             context.setGameState(gameState)
+            if (gameSettings != null) {
+                context.setGameSettings(gameSettings)
+            }
             switch (event_name) {
                 case 'next-tick':
+                    if (gameState?.current_time < 10) {
+                        AudioManager.playSound(SoundType.game_tick)
+                    }
                     break;
                 case 'next-user-turn':
+                    AudioManager.playSound(SoundType.round_start)
+                    context.setShowPlayerOverlay(true);
                     break;
                 case 'next-round':
+                    AudioManager.playSound(SoundType.round_start)
+                    context.setShowPlayerOverlay(true);
                     break;
                 case 'game-over':
+                    AudioManager.playSound(SoundType.game_over)
                     break;
                 case 'admin-change':
                     toast('Ti si sada admin sobe!', { type: "info" })
+                    break;
+                case 'correct-guess':
+                    AudioManager.playSound(SoundType.correct_guess)
                     break;
                 default:
                     break;
@@ -83,10 +107,12 @@ const Game = () => {
 
         }, 500, hasSocketId, 10)
         return () => {
+            /*
             context.socketRef.current.emit('leave-room', {
                 user: context?.user,
                 room_id,
             });
+            */
         }
     }, [context?.user])
 
@@ -101,7 +127,7 @@ const Game = () => {
                 {context?.gameState?.started === true ? <Board /> : <GameSetup />}
                 <Chat />
             </div>
-            <Tools />
+            {context?.gameState?.started === true ? <Tools /> : null}
 
             {context?.confirmExit ?
                 <ExitModal />

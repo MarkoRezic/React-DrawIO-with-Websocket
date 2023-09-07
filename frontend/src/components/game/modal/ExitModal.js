@@ -12,11 +12,11 @@ const ExitModal = () => {
             <div id='game-confirm-exit-background' onClick={context?.cancelExit}></div>
             <div id='game-confirm-exit-modal'>
                 <div className='confirm-exit-title'>
-                    <p>Izaći iz igre?</p>
+                    <p>Jeste li sigurni da želite napustiti?</p>
                 </div>
                 <div className='button-row'>
-                    <div className='confirm-exit-button exit' onClick={context?.exitGame}>Izađi</div>
-                    <div className='confirm-exit-button cancel' onClick={context?.cancelExit}>Nazad</div>
+                    <div className='confirm-exit-button exit' onClick={context?.exitGame}>Da</div>
+                    <div className='confirm-exit-button cancel' onClick={context?.cancelExit}>Ne</div>
                 </div>
             </div>
         </div>

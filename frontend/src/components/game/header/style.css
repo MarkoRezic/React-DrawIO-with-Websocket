@@ -5,6 +5,7 @@
     align-items: stretch;
     background-color: white;
     height: fit-content;
+    box-shadow: var(--container-shadow);
 }
 
 #game-round-time {

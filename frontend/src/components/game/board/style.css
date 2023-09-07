@@ -1,6 +1,4 @@
-.container {
-    display: contents;
-}
+.container {}
 
 #board-container {
     overflow: hidden;
@@ -8,6 +6,24 @@
     width: var(--board-size);
     height: var(--board-size);
     background: white;
+    box-shadow: var(--container-shadow);
+}
+
+#board-container.position-relative {
+    position: relative;
+}
+
+#board-container.position-relative #board,
+#board-container.position-relative #pen-cursor {
+    display: none !important;
+}
+
+#board-container #player-turn-overlay {
+    display: none;
+}
+
+#board-container.position-relative #player-turn-overlay {
+    display: flex;
 }
 
 #board {

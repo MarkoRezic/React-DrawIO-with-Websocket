@@ -1,0 +1,71 @@
+.overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+#player-turn-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+
+    animation: fadeOut ease 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-delay: 1.5s;
+
+}
+
+.overlay-background {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.player-overlay-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: max-content;
+}
+
+.player-overlay-avatar {
+    height: 90px;
+}
+
+.player-overlay-content p {
+    color: white;
+    font-family: 'Tahoma';
+    font-weight: 400;
+    font-size: 32px;
+    text-align: center;
+    margin: 20px;
+}
+
+.player-overlay-username {
+    font-weight: 900;
+}
+
+.player-overlay-text {}
+
+
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}

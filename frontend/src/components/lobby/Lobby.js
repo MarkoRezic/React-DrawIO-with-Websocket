@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import avatars from '../common/avatars';
 import TITLE_IMG from '../../img/title.svg'
 import io from 'socket.io-client';
-import { uuid } from 'uuidv4'
+import { v4 as uuidv4 } from 'uuid'
 
 import './style.css';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { DataContext } from '../../Context';
 import { toast } from 'react-toastify';
 import Loader from '../common/Loader';
 import useDebounce from '../../utils/use_debounce';
+import { AudioManager, SoundType } from '../../AudioManager';
 
 const Lobby = () => {
     const context = useContext(DataContext)
@@ -53,6 +54,7 @@ const Lobby = () => {
     const debouncedUpdateAvatar = useDebounce(context.updateAvatar, 700)
 
     const selectAvatar = (avatarIndex) => {
+        AudioManager.playSound(SoundType.button)
         setSelectedAvatar(avatars[avatarIndex])
         setLoadingAvatar(true)
         debouncedUpdateAvatar(avatarIndex,
@@ -68,15 +70,18 @@ const Lobby = () => {
     const btnEnabled = username.trim() !== ''
 
     const joinPublicRoom = () => {
+        AudioManager.playSound(SoundType.button)
         navigate('/room/public')
     }
 
     const createPrivateRoom = () => {
-        const room_id = uuid();
+        AudioManager.playSound(SoundType.button)
+        const room_id = uuidv4();
         navigate(`/room/${room_id}`)
     }
 
     const logout = () => {
+        AudioManager.playSound(SoundType.button)
         context.logout()
     }
 

@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { useState, createContext, useEffect } from 'react';
 import axios from './axios';
+import { AudioManager, SoundType } from './AudioManager';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 export const DataContext = createContext();
 
@@ -30,6 +32,22 @@ export const DataProvider = (props) => {
         setColor,
         size,
         setSize,
+        musicVolume,
+        setMusicVolume,
+        soundVolume,
+        setSoundVolume,
+        showSettings,
+        setShowSettings,
+        openSettings,
+        closeSettings,
+        showPlayerOverlay,
+        setShowPlayerOverlay,
+        showGameOverlay,
+        setShowGameOverlay,
+        showScores,
+        setShowScores,
+        openScores,
+        closeScores,
     } = useProviderFunctions()
 
     return (
@@ -58,6 +76,22 @@ export const DataProvider = (props) => {
                 setColor,
                 size,
                 setSize,
+                musicVolume,
+                setMusicVolume,
+                soundVolume,
+                setSoundVolume,
+                showSettings,
+                setShowSettings,
+                openSettings,
+                closeSettings,
+                showPlayerOverlay,
+                setShowPlayerOverlay,
+                showGameOverlay,
+                setShowGameOverlay,
+                showScores,
+                setShowScores,
+                openScores,
+                closeScores,
             }
         }>
             {props.children}
@@ -95,21 +129,73 @@ const useProviderFunctions = () => {
     const [gameState, setGameState] = useState(defaultGameState);
     const [gameChatMessages, setGameChatMessages] = useState([]);
     const [confirmExit, setConfirmExit] = useState(false);
+    const [musicVolume, setMusicVolume] = useState(0.2);
+    const [soundVolume, setSoundVolume] = useState(1)
+    const [showSettings, setShowSettings] = useState(false);
+    const [showScores, setShowScores] = useState(false);
+
+    const navigate = useNavigate();
+    const location = useLocation();
 
     // Canvas tools
     const [color, setColor] = useState("#000000")
     const [size, setSize] = useState(5)
 
+    // Event Overlays
+    const [showPlayerOverlay, setShowPlayerOverlay] = useState(false);
+    const [showGameOverlay, setShowGameOverlay] = useState(false);
+
+    useEffect(() => {
+        setTimeout(() => {
+            setShowPlayerOverlay(false)
+        }, 2500)
+    }, [showPlayerOverlay, setShowPlayerOverlay])
+
+    useEffect(() => {
+        if (showGameOverlay === true) {
+            setTimeout(() => {
+                setShowGameOverlay(false)
+            }, 5000)
+        }
+    }, [showGameOverlay, setShowGameOverlay])
+
+    // initialize sounds
+    useEffect(() => {
+        AudioManager.init(musicVolume, soundVolume);
+    }, [])
+
+    // update sounds
+    useEffect(() => {
+        AudioManager.updateVolume(musicVolume, soundVolume)
+    }, [musicVolume, setMusicVolume, soundVolume, setSoundVolume])
+
+    // leave-room if room_id changes
+    useEffect(() => {
+        const room_id = sessionStorage.getItem('last-room-id')
+        console.log(room_id, location.pathname, location.pathname.endsWith(room_id), !location.pathname.endsWith(room_id))
+        if (!(location.pathname.startsWith('/room')) && !(location.pathname.endsWith(room_id)) && room_id != null && room_id.length !== '' && socketRef.current != null) {
+            console.log("LEAVING", room_id, location.pathname, location.pathname.endsWith(room_id), !location.pathname.endsWith(room_id))
+            socketRef.current.emit('leave-room', {
+                user: user,
+                room_id,
+            });
+            setGameSettings(defaultGameSettings)
+            setGameState(defaultGameState)
+            sessionStorage.removeItem('last-room-id')
+            socketRef.current = null;
+        }
+    }, [location])
+
     useEffect(() => {
         const localUser = sessionStorage.getItem("user");
         if (localUser == null && window.location.pathname !== '/login') {
-            window.location.replace('/login')
+            navigate('/login', { replace: true })
         }
         else if (user == null && localUser != null) {
             setUser(JSON.parse(localUser))
         }
         else if (user != null && localUser != null && window.location.pathname === '/login') {
-            window.location.replace('/')
+            navigate('/', { replace: true })
         }
     }, [user, setUser])
 
@@ -176,18 +262,47 @@ const useProviderFunctions = () => {
     }
 
     const openExitModal = () => {
+        AudioManager.playSound(SoundType.button)
         document.body.style.overflow = "hidden";
         setConfirmExit(true)
     }
 
     const exitGame = () => {
+        AudioManager.playSound(SoundType.button)
+        AudioManager.playSound(SoundType.player_leave)
         document.body.style.overflow = "auto";
-        window.location.replace('/');
+        navigate('/', { replace: true })
+        setConfirmExit(false)
     }
 
     const cancelExit = () => {
+        AudioManager.playSound(SoundType.button)
         document.body.style.overflow = "auto";
         setConfirmExit(false)
+    }
+
+    const openSettings = () => {
+        AudioManager.playSound(SoundType.button)
+        document.body.style.overflow = "hidden";
+        setShowSettings(true)
+    }
+
+    const closeSettings = () => {
+        AudioManager.playSound(SoundType.button)
+        document.body.style.overflow = "auto";
+        setShowSettings(false)
+    }
+
+    const openScores = () => {
+        AudioManager.playSound(SoundType.button)
+        document.body.style.overflow = "hidden";
+        setShowScores(true)
+    }
+
+    const closeScores = () => {
+        AudioManager.playSound(SoundType.button)
+        document.body.style.overflow = "auto";
+        setShowScores(false)
     }
 
     return {
@@ -214,6 +329,22 @@ const useProviderFunctions = () => {
         setColor,
         size,
         setSize,
+        musicVolume,
+        setMusicVolume,
+        soundVolume,
+        setSoundVolume,
+        showSettings,
+        setShowSettings,
+        openSettings,
+        closeSettings,
+        showPlayerOverlay,
+        setShowPlayerOverlay,
+        showGameOverlay,
+        setShowGameOverlay,
+        showScores,
+        setShowScores,
+        openScores,
+        closeScores,
     }
 
 }

@@ -3,6 +3,8 @@ import avatars from '../../common/avatars';
 import MEDAL1 from '../../../img/medal_1.png';
 import MEDAL2 from '../../../img/medal_2.png';
 import MEDAL3 from '../../../img/medal_3.png';
+import PENCIL_IMG from '../../../img/pencil.svg';
+import ADMIN_IMG from '../../../img/admin.svg';
 
 import './style.css';
 import { DataContext } from '../../../Context';
@@ -26,12 +28,12 @@ const UserList = () => {
                 orderedUsers().map((user, user_index) =>
                     <div className={'user-row'
                         + (user?.user_id === context?.user?.user_id ? ' current-user' : '')
-                        + (context?.gameState?.correct_guess_user_id_list?.includes(user?.user_id) ? ' correct-guess' : '')} key={user?.user_id}>
+                        + (context?.gameState?.correct_guess_user_id_list?.includes(user?.user_id) ? ' correct-guess' : '')} key={`${user_index}_{user?.socket_id}`}>
                         <div className='user-avatar-wrapper'>
                             <img className='user-avatar' src={avatars?.[user?.avatar].img} />
                         </div>
                         <div className='user-username-points'>
-                            <p className='user-username'>{user?.username}{user?.user_id === context?.user?.user_id ? ' (Ti)' : ''}</p>
+                            <p className='user-username'>{user?.username}{user?.user_id === context?.user?.user_id ? ' (Ti)' : ''} {user?.user_id === context?.gameState?.admin_user_id ? <img id='admin-user-shield' src={ADMIN_IMG} /> : null} {user?.user_id === context?.gameState?.drawing_user_id ? <img id='drawing-user-pencil' src={PENCIL_IMG} /> : null}</p>
                             <p className='user-points'>{context?.gameState?.total_points_user_id_map?.[user?.user_id]}</p>
                         </div>
                         {

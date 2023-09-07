@@ -7,6 +7,7 @@
     height: var(--board-size);
     background-color: white;
     margin-left: 10px;
+    box-shadow: var(--container-shadow);
 }
 
 #chat-messages-list {

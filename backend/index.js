@@ -1,11 +1,14 @@
 const frontend_origin = 'http://localhost:3000';
+const alt_origin = 'http://192.168.0.11:3000'
+const api_origin = 'http://localhost:4000';
+const websocket_origin = 'http://localhost:5000';
 
 // Express
 import express from 'express'
 import cors from 'cors'
-import { db } from './database.js';
+import { db, db_parallel, mysql } from './database.js';
 const app = express();
-app.use(cors({ origin: [frontend_origin], credentials: true }))
+app.use(cors({ origin: [frontend_origin, alt_origin], credentials: true }))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -90,6 +93,54 @@ app.put("/users/avatar/:user_id", async (req, res) => {
       }
 })
 
+app.post('/scores', async (req, res) => {
+      console.log(req.body)
+      const { round_count, user_count, total_points_user_id_map } = req.body
+      try {
+            let insertStatements = [];
+            for (let [user_id, score] of Object.entries(total_points_user_id_map)) {
+                  insertStatements.push(`
+                  INSERT INTO scores (user_id, points, user_count, round_count)
+                  VALUES (${user_id}, ${score}, ${user_count}, ${round_count});
+                  `)
+            }
+            if (insertStatements.length > 0) {
+                  const [result] = await db_parallel.query(insertStatements.join(""));
+
+                  console.log(result)
+                  res.status(200).json({ message: "success" });
+            }
+            else {
+                  res.status(200).json({ message: "no scores" });
+            }
+      } catch (error) {
+            console.log(error)
+            res.status(500).json({ message: "Server Error" })
+      }
+})
+
+app.get('/scores', async (req, res) => {
+      console.log(req.query)
+      const { round_count, user_count } = req.query
+      try {
+            const [result] = await db_parallel.query(`
+                  SELECT u.username, s.points
+                  FROM scores s
+                  JOIN users u ON u.user_id = s.user_id
+                  WHERE s.round_count = ?
+                  AND s.user_count = ?
+                  ORDER BY s.points DESC
+                  `,
+                  [round_count, user_count]);
+
+            console.log(result)
+            res.status(200).json({ message: "success", scores: result });
+      } catch (error) {
+            console.log(error)
+            res.status(500).json({ message: "Server Error" })
+      }
+})
+
 var rest_api_port = 4000;
 app.listen(rest_api_port, () => {
       console.log("REST API started on : " + rest_api_port);
@@ -98,11 +149,12 @@ app.listen(rest_api_port, () => {
 // Websocket
 import { createServer } from "http";
 import { Server } from "socket.io";
+import axios from 'axios';
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
       cors: {
-            origin: [frontend_origin],
+            origin: [frontend_origin, alt_origin],
             credentials: true
       }
 });
@@ -170,11 +222,37 @@ var rooms = {
       },
 }
 
+var rooms_initialized_ids = ["public"]
+
 const updateRooms = async () => {
       for (let [room_id, room] of Object.entries(rooms)) {
-            if (room_id !== "public" && room.gameState.user_list.length === 0) {
-                  delete rooms[room_id];
-                  continue;
+            // delete room if no users left, except public and not initialized rooms
+            if (rooms_initialized_ids.includes(room_id)) {
+                  //console.log(room_id, room.gameState)
+                  if (room_id !== "public" && room.gameState.user_list.length === 0) {
+                        delete rooms[room_id];
+                        rooms_initialized_ids = rooms_initialized_ids.filter(init_id => init_id !== room_id)
+                        continue;
+                  }
+                  // clear out all users whose sockets are no longer connected
+                  const socket_id_list = (await io.in(room_id).fetchSockets()).map(socket => socket.id)
+                  const list_length_before = room.gameState.user_list.length
+                  room.gameState.user_list = room.gameState.user_list.filter(game_user => socket_id_list.includes(game_user?.socket_id))
+                  const list_length_after = room.gameState.user_list.length
+                  if (list_length_before - list_length_after > 0) {
+                        io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name: 'user-list-change' })
+                  }
+                  // remove duplicate users (either user_id or socket)
+                  let unique_user_list = []
+                  for (let user_index = room.gameState.user_list.length - 1; user_index >= 0; user_index--) {
+                        let user = room.gameState.user_list[user_index]
+                        if (unique_user_list.findIndex(unique_user => unique_user?.socket_id === user?.socket_id || unique_user?.user_id === user?.user_id) === -1) {
+                              unique_user_list.push({ ...user });
+                        }
+                  }
+                  if (unique_user_list.length !== room.gameState.user_list.length) {
+                        room.gameState.user_list = unique_user_list.reverse()
+                  }
             }
             // make sure there are no rooms without an admin except the public room
             if (
@@ -206,10 +284,15 @@ const endGame = async (room_id, room) => {
       }
 
       let highest_score_user_id = room.gameState.user_list?.[0]?.user_id
+      console.log('score test', highest_score_user_id)
       for (let [user_id, score] of Object.entries(room.gameState.total_points_user_id_map)) {
-            if (score > room.gameState.total_points_user_id_map[user_id]) {
+            console.log('score test', [user_id, score])
+            console.log('score test highest', room.gameState.total_points_user_id_map[highest_score_user_id])
+            if (score > room.gameState.total_points_user_id_map[highest_score_user_id]) {
                   highest_score_user_id = user_id;
             }
+            console.log('score test highest', room.gameState.total_points_user_id_map[highest_score_user_id])
+            console.log('score test highest id', highest_score_user_id)
       }
 
       io.to(room_id).emit('game-chat-message', {
@@ -223,11 +306,19 @@ const endGame = async (room_id, room) => {
                   {
                         message_access: MessageAccess.public,
                         message_type: MessageType.winner,
-                        user: room.gameState.user_list.find(user => user?.user_id === highest_score_user_id),
+                        user: room.gameState.user_list.find(user => user?.user_id.toString() === highest_score_user_id.toString()),
                         text: `je pobijedio!`
                   },
             ]
       })
+
+      //save scores to database
+      axios.post(`${api_origin}/scores`, {
+            round_count: room?.gameSettings?.round_count,
+            user_count: room?.gameState?.user_list?.length,
+            total_points_user_id_map: room?.gameState?.total_points_user_id_map,
+      })
+
 }
 
 const startGame = async (room_id, room) => {
@@ -268,8 +359,18 @@ const startGame = async (room_id, room) => {
       })
 }
 const startNextRound = async (room_id, room) => {
+      const endOnNextRound = room.gameSettings.round_count !== -1
+            && ((room.gameState.current_round + 1 > room.gameSettings.round_count)
+                  || room.gameState.current_round + 1 >= room.gameSettings.round_count)
       io.to(room_id).emit('game-chat-message', {
-            messages: [
+            messages: endOnNextRound ? [
+                  {
+                        message_access: MessageAccess.public,
+                        message_type: MessageType.info,
+                        user: null,
+                        text: `Riječ je bila ${room.gameState.current_word}!`
+                  },
+            ] : [
                   {
                         message_access: MessageAccess.public,
                         message_type: MessageType.info,
@@ -293,9 +394,9 @@ const startNextRound = async (room_id, room) => {
             ]
       })
       room.gameState.current_word = null;
-      if (room.gameState.used_custom_words.length < room.gameSettings.custom_words) {
+      if (room.gameState.used_custom_words.length < room.gameSettings.custom_words.length) {
             room.gameState.used_custom_words.push(room.gameSettings.custom_words.find(custom_word => !(room.gameState.used_custom_words.includes(custom_word))))
-            room.gameState.current_word = room.gameState.used_custom_words[room.gameState.used_custom_words.length - 1];
+            room.gameState.current_word = room.gameSettings.custom_words[room.gameState.used_custom_words.length];
       }
       room.gameState = {
             ...room.gameState,
@@ -333,9 +434,9 @@ const startNextUserTurn = async (room_id, room) => {
       })
       // set current word to custom word if not all are used up
       room.gameState.current_word = null;
-      if (room.gameState.used_custom_words.length < room.gameSettings.custom_words) {
+      if (room.gameState.used_custom_words.length < room.gameSettings.custom_words.length) {
             room.gameState.used_custom_words.push(room.gameSettings.custom_words.find(custom_word => !(room.gameState.used_custom_words.includes(custom_word))))
-            room.gameState.current_word = room.gameState.used_custom_words[room.gameState.used_custom_words.length - 1];
+            room.gameState.current_word = room.gameSettings.custom_words[room.gameState.used_custom_words.length];
       }
       room.gameState = {
             ...room.gameState,
@@ -366,14 +467,14 @@ const updateGame = async (room_id, room) => {
       // game ended
       // this either happens when the number of users is less than 2 at any point
       // or when the max rounds is not -1 and the current round exceeded the max rounds
-      // or when the current round is the same as max round and all users have drawn
+      // or when the current round is the same as max round and all users have drawn or all users have guessed
       if (
             (room.gameState.user_list.length < 2)
             || (
                   room.gameSettings.round_count !== -1
-                  && (room.gameState.current_round > room.gameSettings.round_count)
-                  || (room.gameState.current_round === room.gameSettings.round_count && room.gameState.current_time <= 0
-                        && room.gameState.user_list?.length - 1 <= room.gameState.current_round_played_user_id_list?.length)
+                  && ((room.gameState.current_round > room.gameSettings.round_count)
+                        || (room.gameState.current_round >= room.gameSettings.round_count && room.gameState.current_time <= 0
+                              && room.gameState.user_list?.length - 1 <= room.gameState.current_round_played_user_id_list?.length))
             )) {
             endGame(room_id, room);
             event_name = 'game-over';
@@ -394,7 +495,7 @@ const updateGame = async (room_id, room) => {
             event_name = 'next-tick';
       }
 
-      io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name })
+      io.to(room_id).emit('update-game-state', { gameState: room.gameState, gameSettings: room.gameSettings, event_name })
 
       console.log("ROOM:", room);
       console.log("EVENT:", event_name);
@@ -432,7 +533,7 @@ const sendChatMessage = async (room_id, room, user, message) => {
 
             // add to correct user guesses list
             room.gameState.correct_guess_user_id_list.push(user?.user_id)
-            io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name: 'correct_guess' });
+            io.to(room_id).emit('update-game-state', { gameState: room.gameState, event_name: 'correct-guess' });
       }
       io.to(room_id).emit('game-chat-message', {
             messages: isCorrectGuess ? [
@@ -462,49 +563,62 @@ const sendChatMessage = async (room_id, room, user, message) => {
 io.on('connection', (socket) => {
       console.log('User Connected', socket.id);
       socket.on('join-room', ({ user, room_id, gameSettings }) => {
-            console.log(user, room_id, gameSettings)
+            console.log('join-room1', user, room_id, gameSettings)
             // default to public room
             room_id = room_id ?? "public"
             // leave rooms the socket is already in except the provided one
-            for (socket_room of Object.values(socket.rooms)) {
+            for (let socket_room of Object.values(socket.rooms)) {
                   if (socket_room !== room_id) {
-                        socket.leave(socket_room);
+                        // socket.leave(socket_room);
                   }
             }
             socket.join(room_id);
 
             // create the room in local list if it does not exist, also appoint the user as admin of the room in that case
+            let created = false;
             if (room_id !== "public" && rooms[room_id] == null) {
+                  created = true;
+                  let total_points_user_id_map = {};
+                  total_points_user_id_map[user?.user_id] = 0
                   rooms[room_id] = {
                         gameSettings: gameSettings ?? defaultGameSettings,
                         gameState: {
                               ...defaultGameState,
                               admin_user_id: user?.user_id,
+                              user_list: [{ ...user, socket_id: socket.id }],
+                              total_points_user_id_map: total_points_user_id_map,
                               current_time: (gameSettings ?? defaultGameSettings).round_time,
                         }
                   }
+                  console.log('create-room', user, room_id, rooms[room_id])
             }
-            // only add the user if he isn't already in the list and if the room isn't full
-            if (
-                  (room_id === "public" || rooms[room_id].gameState.user_list.length < rooms[room_id].gameSettings.max_users)
-                  && rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id
-                        || game_user?.user_id === user?.user_id) === -1
-            ) {
-                  rooms[room_id].gameState.user_list.push({ ...user, socket_id: socket.id })
-                  // initialize user points to 0
-                  rooms[room_id].gameState.total_points_user_id_map[user?.user_id] = 0;
-                  // start the public room game if at least 2 users are now in room
-                  if (room_id === "public" && rooms[room_id].gameState.started === false && rooms[room_id].gameState.user_list.length > 1) {
-                        startGame(room_id, rooms[room_id]);
+            console.log('join-room2', user, room_id, rooms[room_id])
+            // only add the user if the room isn't full
+            if (!created) {
+                  if (
+                        (room_id === "public" || rooms[room_id]?.gameState?.user_list?.length < rooms[room_id]?.gameSettings?.max_users)
+                  ) {
+                        rooms[room_id].gameState.user_list.push({ ...user, socket_id: socket.id })
+                        // initialize user points to 0
+                        rooms[room_id].gameState.total_points_user_id_map[user?.user_id] = 0;
+                        // start the public room game if at least 2 users are now in room
+                        if (room_id === "public" && rooms[room_id].gameState.started === false && rooms[room_id].gameState.user_list.length > 1) {
+                              startGame(room_id, rooms[room_id]);
+                        }
+                        io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id]?.gameState });
                   }
-                  io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id].gameState });
+                  else {
+                        // redirect user with message if failed to join
+                        socket.emit('join-failed', {
+                              reason: "ROOM_FULL" // : "ALREADY_JOINED"
+                        })
+                  }
             }
             else {
-                  // redirect user with message if failed to join
-                  socket.emit('join-failed', {
-                        reason: rooms[room_id].gameState.user_list.findIndex(game_user => game_user.socket_id === socket.id
-                              || game_user?.user_id === user?.user_id) === -1 ? "ROOM_FULL" : "ALREADY_JOINED"
-                  })
+                  io.to(room_id).emit('user-joined', { user, gameState: rooms[room_id]?.gameState, silent: true });
+            }
+            if (rooms[room_id] != null && !(rooms_initialized_ids.includes(room_id))) {
+                  rooms_initialized_ids.push(room_id)
             }
       });
 
@@ -538,36 +652,43 @@ io.on('connection', (socket) => {
       socket.on('disconnect', function () {
             console.log('User Disconnected', socket.id);
 
+            // remove the user from list
+            console.log("SOCKET", socket?.id)
+
             for (let [room_id, room] of Object.entries(rooms)) {
-                  let user_index = room.gameState.user_list.findIndex(user => user.socket_id === socket.id)
-                  let user = null;
-                  if (user_index !== -1) {
-                        user = room.gameState.user_list[user_index];
-                        room.gameState.user_list = room.gameState.user_list.filter((user, index) => index !== user_index)
-                        io.to(room_id).emit('user-leave', { user, ...room })
+                  const user = rooms[room_id]?.gameState?.user_list?.find?.(game_user => game_user?.socket_id === socket?.id)
+                  // remove the user from list
+                  if (rooms[room_id] != null) {
+                        const list_length_before = rooms[room_id]?.gameState?.user_list?.length
+                        rooms[room_id].gameState.user_list = rooms[room_id].gameState.user_list.filter(game_user => game_user?.socket_id !== socket?.id)
+                        const list_length_after = rooms[room_id]?.gameState?.user_list?.length
+
+                        if (list_length_before - list_length_after > 0) {
+                              io.to(room_id).emit('user-leave', { user, ...(rooms[room_id] ?? {}) })
+                        }
                   }
             }
       });
 
       socket.on('leave-room', ({ user, room_id }) => {
             console.log('leave-room', user, room_id)
+            console.log('list', rooms[room_id]?.gameState?.user_list)
             // default to public room
             room_id = room_id ?? "public"
             // leave provided room
             socket.leave(room_id);
 
-            // only remove the user if he is already in the list
-            const user_index = rooms[room_id].gameState.user_list.findIndex(game_user => game_user?.socket_id === socket?.id);
-            if (user_index !== -1) {
-                  rooms[room_id].gameState.user_list = rooms[room_id].gameState.user_list.filter((game_user, game_user_index) => game_user_index !== user_index)
-            }
+            // remove the user from list
+            console.log("SOCKET", socket?.id)
+            if (rooms[room_id] != null) {
+                  const list_length_before = rooms[room_id]?.gameState?.user_list?.length
+                  rooms[room_id].gameState.user_list = rooms[room_id].gameState.user_list.filter(game_user => game_user?.socket_id !== socket?.id || game_user?.user_id !== user?.user_id)
+                  const list_length_after = rooms[room_id]?.gameState?.user_list?.length
 
-            // remove the room if no users are left
-            if (room_id !== "public" && rooms[room_id] != null && rooms[room_id]?.gameState?.user_list?.length === 0) {
-                  delete rooms[room_id]
+                  if (list_length_before - list_length_after > 0) {
+                        io.to(room_id).emit('user-leave', { user, ...(rooms[room_id] ?? {}) })
+                  }
             }
-
-            io.to(room_id).emit('user-leave', { user, ...(rooms[room_id] ?? {}) })
       });
 })
 

@@ -5,6 +5,7 @@ import './style.css';
 import { DataContext } from '../../Context'
 import Loader from '../common/Loader';
 import { toast } from 'react-toastify';
+import { AudioManager, SoundType } from '../../AudioManager';
 
 const Login = () => {
     const context = useContext(DataContext);
@@ -23,6 +24,7 @@ const Login = () => {
 
     const login = () => {
         if (btnEnabled) {
+            AudioManager.playSound(SoundType.button)
             setLoading(true);
             context.login(username, password, (errorCode) => {
                 setLoading(false);
@@ -33,6 +35,7 @@ const Login = () => {
 
     const register = () => {
         if (btnEnabled) {
+            AudioManager.playSound(SoundType.button)
             setLoading(true);
             context.register(username, password, (errorCode) => {
                 setLoading(false);
@@ -47,6 +50,7 @@ const Login = () => {
     }
 
     const toggleShowPassword = () => {
+        AudioManager.playSound(SoundType.button)
         setShowPassword(!showPassword)
     }
 
